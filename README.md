@@ -14,3 +14,7 @@ You will need to edit the script and enter your email address before using it.
 # zpool_report.sh
 
 You will need to edit the script and enter your email address before using it.
+
+# save_config.sh
+
+Edit this script and specify the target dataset where you want to copy the backup FreeNAS configuration file.
