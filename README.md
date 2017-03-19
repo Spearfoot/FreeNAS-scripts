@@ -24,7 +24,7 @@ You will need to edit the script and enter your email address before using it.
 # ups_report.sh
 Generates and emails you a status report about your UPS.
 
-You will need to edit the script and enter your email address before using it.
+You will need to edit the script and enter your email address before using it. You may also have the report include all of the available UPSC variables by setting the `senddetail` variable to a value greater than zero.
 ***
 # save_config.sh
 
