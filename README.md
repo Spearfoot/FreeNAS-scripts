@@ -6,7 +6,7 @@ Bash scripts for use on FreeNAS servers
 The other scripts are my own work unless otherwise noted.
 
 I used the excellent shell script static analysis tool at https://www.shellcheck.net to insure that all of this code is free of issues. But this doesn't mean you won't find any errors.  ☺️
-
+***
 # smart_report.sh
 
 Generates and emails you a status report with detailed SMART information about your system's drives.
@@ -14,13 +14,13 @@ Generates and emails you a status report with detailed SMART information about y
 By default, my version of this script uses a function I wrote which uses smartctl's scan list to obtain the SMART-enabled drives on the system, but you have the option of using either a hard-coded list or a sysctl-based method instead, if you so choose. This version allows for serial numbers up to 18 characters in length, where the original only supported 15. It also selects the "Device Model" as the drive 'brand' if the "Model Family" SMART attribute is unavailable.
 
 You will need to edit the script and enter your email address before using it.
-
+***
 # zpool_report.sh
 
 Generates and emails you a status report about your system's pools.
 
 You will need to edit the script and enter your email address before using it.
-
+***
 # save_config.sh
 
 Copies the FreeNAS system configuration file to a dataset you specify. The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _boomer_:
@@ -28,7 +28,7 @@ Copies the FreeNAS system configuration file to a dataset you specify. The backu
   __boomer-FreeNAS-9.10.2-U2-e1497f2-20170315224905.db__
 
 Edit this script and specify the target dataset where you want the backup files copied.
-
+***
 # set_hdd_erc.sh
 
 Sets the Error Recovery Control (aka SCTERC or TLER) read and write values on your system's hard drives. What is this? There is a good discussion in the ["Checking for TLER, ERC, etc. support on a drive"](https://forums.freenas.org/index.php?threads/checking-for-tler-erc-etc-support-on-a-drive.27126/) thread on the FreeNAS forum, and you can find more gory details in [this FAQ](https://www.smartmontools.org/wiki/FAQ#WhatiserrorrecoverycontrolERCandwhyitisimportanttoenableitfortheSATAdisksinRAID) at the [smartmontools.org](https://www.smartmontools.org) website. This key quote from the FAQ sums up why you want to set this up on your FreeNAS servers:
@@ -38,7 +38,7 @@ Sets the Error Recovery Control (aka SCTERC or TLER) read and write values on yo
 By default, the script sets both the read and write timeout value to 7 seconds. You can change either or both of these values to better suit your environment.
 
 Some hard drives retain these values when powered down, but some do not - including the HGST 7K4000 drives I use in one of my systems. For this reason, I configure my FreeNAS servers to run `set_hdd_src.sh` as a post-init startup script.
-
+***
 # get_hdd_temp.sh
 
 Displays the current temperature of your system's drives. Output includes: the device ID, temperature (in Centigrade), drive model/brand, and serial number. Here is sample output from one of my systems:
