@@ -45,5 +45,5 @@ for drive in $drives; do
   if [ -z "$brand" ]; then
     brand=$(/usr/local/sbin/smartctl -i /dev/${drive} | grep "Device Model" | awk '{print $3, $4, $5}')
   fi
-  printf "%5.5s: %3.3sC %s %s %s\n" "$drive" "$temp" "$brand" "$serial" 
+  printf "%5.5s: %3.3sC %s %s\n" "$drive" "$temp" "$brand" "$serial" 
 done
