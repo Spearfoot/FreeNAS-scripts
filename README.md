@@ -38,3 +38,17 @@ Sets the Error Recovery Control (aka SCTERC or TLER) read and write values on yo
 By default, the script sets both the read and write timeout value to 7 seconds. You can change either or both of these values to better suit your environment.
 
 Some hard drives retain these values when powered down, but some do not - including the HGST 7K4000 drives I use in one of my systems. For this reason, I configure my FreeNAS servers to run `set_hdd_src.sh` as a post-init startup script.
+
+# get_hdd_temp.sh
+
+Displays the current temperature of your system's drives. Output includes: the device ID, temperature (in Centigrade), drive model/brand, and serial number. Here is sample output from one of my systems:
+
+>da1:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+da2:  34C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+da3:  33C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+da4:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+da5:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+da6:  31C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+da7:  21C INTEL SSDSC2BA100G3L  BTTV99999999999999 
+da8:  31C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+ada0:  29C Western Digital Green WD-WMAZA9999999<
