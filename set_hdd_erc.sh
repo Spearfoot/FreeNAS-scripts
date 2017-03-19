@@ -30,13 +30,12 @@ get_smart_drives()
 
   gs_smartdrives=""
 
-  for gs_drive in $gs_drives 
-    do
-      gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
-      if [ "$gs_smart_flag" == "Enabled" ]; then
-        gs_smartdrives=$gs_smartdrives" "${gs_drive}
-      fi
-    done
+  for gs_drive in $gs_drives; do
+    gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
+    if [ "$gs_smart_flag" == "Enabled" ]; then
+      gs_smartdrives=$gs_smartdrives" "${gs_drive}
+    fi
+  done
 
   eval "$1=\$gs_smartdrives"
 }
