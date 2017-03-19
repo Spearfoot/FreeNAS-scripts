@@ -37,13 +37,12 @@ get_smart_drives()
 
   gs_smartdrives=""
 
-  for gs_drive in $gs_drives 
-    do
-      gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
-      if [ "$gs_smart_flag" == "Enabled" ]; then
-        gs_smartdrives=$gs_smartdrives" "${gs_drive}
-      fi
-    done
+  for gs_drive in $gs_drives; do
+    gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
+    if [ "$gs_smart_flag" == "Enabled" ]; then
+      gs_smartdrives=$gs_smartdrives" "${gs_drive}
+    fi
+  done
 
   eval "$1=\$gs_smartdrives"
 }
@@ -76,8 +75,7 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
  echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+"
 ) >> ${logfile}
 
-for drive in $drives 
-  do
+for drive in $drives; do
   (
   /usr/local/sbin/smartctl -A -i -v 7,hex48 /dev/"${drive}" | \
   awk -v device="${drive}" -v tempWarn=${tempWarn} -v tempCrit=${tempCrit} -v sectorsCrit=${sectorsCrit} \
@@ -111,18 +109,16 @@ for drive in $drives
       seekErrors, totalSeeks, hiFlyWr, cmdTimeout;
       }'
   ) >> ${logfile}
-  done
+done
 
 (
   echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+"
 ) >> ${logfile}
 
 ###### for each drive ######
-for drive in $drives 
-do
+for drive in $drives; do
   brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Model Family" | awk '{print $3, $4, $5}')
-  if [ -z "$brand" ];
-  then
+  if [ -z "$brand" ]; then
     brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Device Model" | awk '{print $3, $4, $5}')
   fi
   serial=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Serial Number" | awk '{print $3}')
