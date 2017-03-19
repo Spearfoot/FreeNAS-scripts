@@ -43,12 +43,20 @@ Some hard drives retain these values when powered down, but some do not - includ
 
 Displays the current temperature of your system's drives. Output includes: the device ID, temperature (in Centigrade), drive model/brand, and serial number. Here is sample output from one of my systems:
 
->da1:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+`da1:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+
 da2:  34C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+
 da3:  33C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+
 da4:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+
 da5:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
+
 da6:  31C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-da7:  21C INTEL SSDSC2BA100G3L  BTTV99999999999999 
+
+da7:  21C INTEL SSDSC2BA100G3L  BTTV99999999999999
+
 da8:  31C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-ada0:  29C Western Digital Green WD-WMAZA9999999<
+
+ada0:  29C Western Digital Green WD-WMAZA9999999`
