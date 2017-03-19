@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Display current temperature of all SMART-enabled drives
+
 # We need a list of the SMART-enabled drives on the system. Choose one of these
 # three methods to provide the list. Comment out the two unused sections of code.
 
