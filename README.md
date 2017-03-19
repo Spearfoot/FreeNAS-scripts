@@ -25,7 +25,9 @@ You will need to edit the script and enter your email address before using it.
 
 Copies the FreeNAS system configuration file to a dataset you specify. The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _boomer_:
 
-  __boomer-FreeNAS-9.10.2-U2-e1497f2-20170315224905.db__
+```
+boomer-FreeNAS-9.10.2-U2-e1497f2-20170315224905.db
+```
 
 Edit this script and specify the target dataset where you want the backup files copied.
 ***
