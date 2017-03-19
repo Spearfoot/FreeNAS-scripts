@@ -1,7 +1,7 @@
 # FreeNAS Scripts
 Bash scripts for use on FreeNAS servers
 
-`smart_report.sh` and `zpool_report.sh` are my versions of these useful scripts available at the ["Scripts to report SMART, ZPool and UPS status, HDD/CPU T°, HDD identification and backup the config"](https://forums.freenas.org/index.php?threads/scripts-to-report-smart-zpool-and-ups-status-hdd-cpu-t%C2%B0-hdd-identification-and-backup-the-config.27365/) thread on the FreeNAS forum. The original author is FreeNAS forum member BiduleOhm, with others contributing suggestions and code changes. I have modified the syntax and made minor changes in formatting and spacing of the generated reports.
+`smart_report.sh`, `zpool_report.sh`, and `ups_report.sh` are my versions of these useful scripts available at the ["Scripts to report SMART, ZPool and UPS status, HDD/CPU T°, HDD identification and backup the config"](https://forums.freenas.org/index.php?threads/scripts-to-report-smart-zpool-and-ups-status-hdd-cpu-t%C2%B0-hdd-identification-and-backup-the-config.27365/) thread on the FreeNAS forum. The original author is FreeNAS forum member BiduleOhm, with others contributing suggestions and code changes. I have modified the syntax and made minor changes in formatting and spacing of the generated reports.
 
 The other scripts are my own work unless otherwise noted.
 
@@ -18,6 +18,11 @@ You will need to edit the script and enter your email address before using it.
 # zpool_report.sh
 
 Generates and emails you a status report about your system's pools.
+
+You will need to edit the script and enter your email address before using it.
+***
+# ups_report.sh
+Generates and emails you a status report about your UPS.
 
 You will need to edit the script and enter your email address before using it.
 ***
