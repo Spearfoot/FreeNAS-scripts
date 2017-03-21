@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 ### Parameters ###
 
 # Specify your email address here:
 email=""
 
-freenashost=$(hostname -s)
+freenashost=$(hostname -s | tr '[:lower:]' '[:upper:]')
 logfile="/tmp/zpool_report.tmp"
-subject="ZPool Status Report for ${freenashost^^}"
+subject="ZPool Status Report for ${freenashost}"
 pools=$(zpool list -H -o name)
 usedWarn=75
 usedCrit=90
@@ -21,7 +21,7 @@ critSymbol="!"
   echo "Subject: ${subject}"
   echo "Content-Type: text/html"
   echo "MIME-Version: 1.0"
-  echo -e "\r\n"
+  printf "\r\n"
 ) > ${logfile}
 
 ### Set email body ###
@@ -29,7 +29,7 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
 
 ###### summary ######
 (
-  echo "########## ZPool status report summary for all pools on server ${freenashost^^} ##########"
+  echo "########## ZPool status report summary for all pools on server ${freenashost} ##########"
   echo ""
   echo "+--------------+--------+------+------+------+----+--------+------+-----+"
   echo "|Pool Name     |Status  |Read  |Write |Cksum |Used|Scrub   |Scrub |Last |"
