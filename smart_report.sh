@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 ### Parameters ###
 
 # Specify your email address here:
 email=""
 
-freenashost=$(hostname -s)
+freenashost=$(hostname -s | tr '[:lower:]' '[:upper:]')
 logfile="/tmp/smart_report.tmp"
-subject="SMART Status Report for ${freenashost^^}"
+subject="SMART Status Report for ${freenashost}"
 tempWarn=40
 tempCrit=45
 sectorsCrit=10
@@ -28,18 +28,13 @@ critSymbol="!"
 # 3. A smartctl-based function:
 get_smart_drives()
 {
-  local gs_smartdrives
-  local gs_drives
-  local gs_drive
-  local gs_smart_flag
-
-  gs_drives=$(/usr/local/sbin/smartctl --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///')
+  gs_drives=$(/usr/local/sbin/smartctl --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///' | tr '\n' ' ')
 
   gs_smartdrives=""
 
   for gs_drive in $gs_drives; do
     gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
-    if [ "$gs_smart_flag" == "Enabled" ]; then
+    if [ "$gs_smart_flag" = "Enabled" ]; then
       gs_smartdrives=$gs_smartdrives" "${gs_drive}
     fi
   done
@@ -47,7 +42,7 @@ get_smart_drives()
   eval "$1=\$gs_smartdrives"
 }
 
-declare drives
+drives=""
 get_smart_drives drives
 
 # end of method 3.
@@ -58,7 +53,7 @@ get_smart_drives drives
   echo "Subject: ${subject}"
   echo "Content-Type: text/html"
   echo "MIME-Version: 1.0"
-  echo -e "\r\n"
+  printf "\r\n"
 ) > ${logfile}
 
 ### Set email body ###
@@ -66,7 +61,7 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
 
 ###### summary ######
 (
- echo "########## SMART status report summary for all drives on server ${freenashost^^} ##########"
+ echo "########## SMART status report summary for all drives on server ${freenashost} ##########"
  echo ""
  echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+"
  echo "|Device|Serial            |Temp|Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |Command|"
