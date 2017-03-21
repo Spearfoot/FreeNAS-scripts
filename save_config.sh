@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 #################################################
 # Backup the FreeNAS configuration file
@@ -9,7 +9,7 @@
 
 # Example: configdir=/mnt/tank/sysadmin/config
 
-configdir=
+configdir=""
 
 # Remove this code once you've defined configdir above... :-)
 
@@ -20,10 +20,7 @@ fi
 
 freenashost=$(hostname -s)
 
-fnconfigdest_version=$(cat /etc/version) 
-fnconfigdest_version="${fnconfigdest_version//(/}"
-fnconfigdest_version="${fnconfigdest_version//)/}"
-fnconfigdest_version="${fnconfigdest_version// /-}"
+fnconfigdest_version=$(< /etc/version sed -e 's/)//;s/(//;s/ /-/' | tr -d '\n') 
 fnconfigdest_date=$(date +%Y%m%d%H%M%S)
 fnconfigdest="${configdir}"/"${freenashost}"-"${fnconfigdest_version}"-"${fnconfigdest_date}".db
 
