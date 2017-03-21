@@ -140,6 +140,7 @@ echo "</pre>" >> ${logfile}
 if [ -z "${email}" ]; then
   echo "No email address specified, information available in ${logfile}"
 else
-  sendmail -t < ${logfile}
+#  sendmail -t < ${logfile}
+  sendmail ${email} < ${logfile}
   rm ${logfile}
 fi
