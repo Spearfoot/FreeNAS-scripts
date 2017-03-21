@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 # https://www.smartmontools.org/wiki/FAQ#WhatiserrorrecoverycontrolERCandwhyitisimportanttoenableitfortheSATAdisksinRAID
 
@@ -21,18 +21,13 @@ writesetting=70
 # 3. A smartctl-based function:
 get_smart_drives()
 {
-  local gs_smartdrives
-  local gs_drives
-  local gs_drive
-  local gs_smart_flag
-
-  gs_drives=$(/usr/local/sbin/smartctl --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///')
+  gs_drives=$(/usr/local/sbin/smartctl --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///' | tr '\n' ' ')
 
   gs_smartdrives=""
 
   for gs_drive in $gs_drives; do
     gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
-    if [ "$gs_smart_flag" == "Enabled" ]; then
+    if [ "$gs_smart_flag" = "Enabled" ]; then
       gs_smartdrives=$gs_smartdrives" "${gs_drive}
     fi
   done
@@ -40,7 +35,7 @@ get_smart_drives()
   eval "$1=\$gs_smartdrives"
 }
 
-declare drives
+drives=""
 get_smart_drives drives
 
 # end of method 3.
