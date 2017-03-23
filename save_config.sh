@@ -4,6 +4,9 @@
 # Backup the FreeNAS configuration file
 #################################################
 
+# Optional: specify your email address here if you want to receive notification
+email=""
+
 # Specify the dataset on your system where you want the configuration files copied.
 # Don't include the trailing slash.
 
@@ -29,3 +32,41 @@ echo "Backup configuration database file: ${fnconfigdest}"
 # Copy the source to the destination:
 
 cp /data/freenas-v1.db "${fnconfigdest}"
+l_status=$?
+
+# Send email notification if indicated:
+
+if [ ! -z "${email}" ]; then
+  freenashostuc=$(hostname -s | tr '[:lower:]' '[:upper:]')
+  freenashostname=$(hostname)
+  freenasversion=$(cat /etc/version) 
+  rundate=$(date)
+  logfile="/tmp/save_config.tmp"
+  if [ $l_status -eq 0 ]; then
+    subject="FreeNAS configuration saved on server ${freenashostuc}"
+  else
+    subject="FreeNAS configuration backup failed on server ${freenashostuc}"
+  fi
+  (
+    echo "To: ${email}"
+    echo "Subject: ${subject}"
+    echo "Content-Type: text/html"
+    echo "MIME-Version: 1.0"
+    printf "\r\n"
+    echo "<pre style=\"font-size:14px\">"
+    if [ $l_status -eq 0 ]; then
+      echo "Configuration file saved successfully on ${rundate}"
+    else
+      echo "Configuration backup failed with status=${l_status} on ${rundate}"
+    fi
+    echo ""
+    echo "Server: ${freenashostname}"
+    echo "Version: ${freenasversion}"
+    echo "File: ${fnconfigdest}"
+    echo "</pre>"
+  ) > ${logfile}
+  sendmail ${email} < ${logfile}
+  rm ${logfile}
+fi
+
+
