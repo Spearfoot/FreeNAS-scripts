@@ -33,6 +33,8 @@ boomer-FreeNAS-9.10.2-U2-e1497f2-20170315224905.db
 ```
 
 Edit this script and specify the target dataset where you want the backup files copied.
+
+Optional feature: specify your email address to receive notification messages whenever the script executes.
 ***
 # set_hdd_erc.sh
 
