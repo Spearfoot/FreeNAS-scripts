@@ -36,7 +36,7 @@ Edit this script and specify the target dataset where you want the backup files 
 
 Optional features:
 * Specify your email address to receive notification messages whenever the script executes.
-* Specify your ESXi short hostname to backup the ESXi server configuration file. These backup files are formed from the hostname and date in this format: _hostname-configBundle-date.tgz_. Here is an example from a recent backup on my server named _felix_, on which _boomer_ is a guest:
+* Specify your ESXi short hostname to backup the ESXi server configuration file. These backup filenames are formed from the hostname and date in this format: _hostname-configBundle-date.tgz_. Here is an example from a recent backup on my server named _felix_, on which _boomer_ is a guest:
 
   ```
   felix-configBundle-20170315224905.tgz
