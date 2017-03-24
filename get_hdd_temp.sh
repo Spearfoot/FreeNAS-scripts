@@ -44,12 +44,12 @@ printf "=== CPU (%s) ===\n" "${cores}"
 cores=$((cores - 1))
 
 for core in $(seq 0 $cores); do
-	temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
-	if [ "$temp" -lt 0 ]; then
-		temp="--N/A--"
-	else
-		temp="${temp}C"
-	fi
+  temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
+  if [ "$temp" -lt 0 ]; then
+    temp="--N/A--"
+  else
+    temp="${temp}C"
+  fi
   printf "CPU %s: %4s\n" "$core" "$temp"
 done
 
