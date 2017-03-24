@@ -54,9 +54,16 @@ Some hard drives retain these values when powered down, but some do not - includ
 ***
 # get_hdd_temp.sh
 
-Displays the current temperature of your system's drives. Output includes: the device ID, temperature (in Centigrade), drive model/brand, and serial number. Here is sample output from one of my systems:
+Displays the current temperature of your system's CPUs and drives. Drive output includes: the device ID, temperature (in Centigrade), drive model/brand, and serial number. Here is sample output from one of my systems:
 
 ```
+=== CPU (4) ===
+CPU 0: 38C
+CPU 1: 38C
+CPU 2: 38C
+CPU 3: 38C
+
+=== DRIVES ===
 da1:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
 da2:  34C Hitachi/HGST Ultrastar 7K4000 PK999999999999
 da3:  33C Hitachi/HGST Ultrastar 7K4000 PK999999999999
