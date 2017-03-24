@@ -35,6 +35,32 @@ get_smart_drives drives
 
 # end of method 3.
 
+#############################
+# CPU temperatures:
+#############################
+
+cores=$(sysctl -a | grep "hw.ncpu" | awk '{print $2}')
+printf "=== CPU (%s) ===\n" "${cores}"
+cores=$((cores - 1))
+
+for core in $(seq 0 $cores); do
+	temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
+	if [ "$temp" -lt 0 ]; then
+		temp="--N/A--"
+	else
+		temp="${temp}C"
+	fi
+  printf "CPU %s: %4s\n" "$core" "$temp"
+done
+
+echo ""
+
+#############################
+# Drive temperatures:
+#############################
+
+echo "=== DRIVES ==="
+
 for drive in $drives; do
   serial=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Serial Number" | awk '{print $3}')
   temp=$(/usr/local/sbin/smartctl -A /dev/"${drive}" | grep "Temperature_Celsius" | awk '{print $10}')
