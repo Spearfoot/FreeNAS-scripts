@@ -1,11 +1,17 @@
 #!/bin/sh
 
+rundate=$(date)
+
 #################################################
 # Backup the FreeNAS configuration file
 #################################################
 
 # Optional: specify your email address here if you want to receive notification
 email=""
+
+# Optional: specify the short name of your ESXi host if you are running FreeNAS
+# as a VM and you want to back up the ESXi host's configuration
+esxihost=""
 
 # Specify the dataset on your system where you want the configuration files copied.
 # Don't include the trailing slash.
@@ -27,20 +33,36 @@ fnconfigdest_version=$(< /etc/version sed -e 's/)//;s/(//;s/ /-/' | tr -d '\n')
 fnconfigdest_date=$(date +%Y%m%d%H%M%S)
 fnconfigdest="${configdir}"/"${freenashost}"-"${fnconfigdest_version}"-"${fnconfigdest_date}".db
 
-echo "Backup configuration database file: ${fnconfigdest}" 
+echo "Backup FreeNAS configuration database file: ${fnconfigdest}" 
 
 # Copy the source to the destination:
 
 cp /data/freenas-v1.db "${fnconfigdest}"
 l_status=$?
 
+#################################################
+# Backup the VMware ESXi host configuration:
+#################################################
+
+if [ ! -z "${esxihost}" ]; then
+  esxihostname=$(ssh root@"${esxihost}" hostname)
+  esxiversion=$(ssh root@"${esxihost}" uname -a | sed -e "s|VMkernel ||;s|$esxihostname ||")
+  esxiconfig_url=$(ssh root@"${esxihost}" vim-cmd hostsvc/firmware/backup_config | awk '{print $7}' | sed -e "s|*|$esxihostname|")
+  esxiconfig_date=$(date +%Y%m%d%H%M%S)
+  esxiconfig_file="${configdir}"/"${esxihost}"-configBundle-"${esxiconfig_date}".tgz
+  
+  echo "Downloading $esxiconfig_url to $esxiconfig_file"
+  wget --no-check-certificate --output-document="${esxiconfig_file}" "${esxiconfig_url}"
+fi
+
+#################################################
 # Send email notification if indicated:
+#################################################
 
 if [ ! -z "${email}" ]; then
   freenashostuc=$(hostname -s | tr '[:lower:]' '[:upper:]')
   freenashostname=$(hostname)
   freenasversion=$(cat /etc/version) 
-  rundate=$(date)
   logfile="/tmp/save_config.tmp"
   if [ $l_status -eq 0 ]; then
     subject="FreeNAS configuration saved on server ${freenashostuc}"
@@ -60,9 +82,17 @@ if [ ! -z "${email}" ]; then
       echo "Configuration backup failed with status=${l_status} on ${rundate}"
     fi
     echo ""
+    echo "FreeNAS:"
     echo "Server: ${freenashostname}"
     echo "Version: ${freenasversion}"
     echo "File: ${fnconfigdest}"
+    if [ ! -z "${esxihost}" ]; then
+      echo ""
+      echo "ESXi:"
+      echo "Server: ${esxihostname}"
+      echo "Version: ${esxiversion}"
+      echo "File: ${esxiconfig_file}"
+    fi
     echo "</pre>"
   ) > ${logfile}
   sendmail ${email} < ${logfile}
