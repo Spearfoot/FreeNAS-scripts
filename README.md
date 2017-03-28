@@ -26,7 +26,7 @@ You will need to edit the script and enter your email address before using it. Y
 ***
 # save_config.sh
 
-Copies the FreeNAS system configuration file to a dataset you specify. The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _boomer_:
+Saves your FreeNAS system configuration file to a dataset you specify. Supports both FreeNAS 9.x and the newer Corral version. The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _boomer_:
 
 ```
 boomer-FreeNAS-9.10.2-U2-e1497f2-20170315224905.db
