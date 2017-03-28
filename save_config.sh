@@ -37,7 +37,7 @@ echo "Backup FreeNAS configuration database file: ${fnconfigdest}"
 
 iscorral=$(< /etc/version grep "Corral" | awk {'print $1'})
 
-if [ ! -z iscorral ]; then
+if [ ! -z "${iscorral}" ]; then
   # FreeNAS Corral: make a CLI call:
   cli -e "system config download path=${fnconfigdest}"
 else
