@@ -35,9 +35,16 @@ fnconfigdest="${configdir}"/"${freenashost}"-"${fnconfigdest_version}"-"${fnconf
 
 echo "Backup FreeNAS configuration database file: ${fnconfigdest}" 
 
-# Copy the source to the destination:
+iscorral=$(< /etc/version grep "Corral" | awk {'print $1'})
 
-cp /data/freenas-v1.db "${fnconfigdest}"
+if [ ! -z iscorral ]; then
+  # FreeNAS Corral: make a CLI call:
+  cli -e "system config download path=${fnconfigdest}"
+else
+  # FreeNAS 9.x: Copy the source to the destination:
+  cp /data/freenas-v1.db "${fnconfigdest}"
+fi
+
 l_status=$?
 
 #################################################
