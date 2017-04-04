@@ -42,7 +42,7 @@ for pool in $pools; do
   if [ "${pool}" = "freenas-boot" ]; then
     frag=""
   else
-    frag="$(zpool list -H -o frag ${pool})"
+    frag="$(zpool list -H -o frag "$pool")"
   fi
   status="$(zpool list -H -o health "$pool")"
   errors="$(zpool status "$pool" | grep -E "(ONLINE|DEGRADED|FAULTED|UNAVAIL|REMOVED)[ \t]+[0-9]+")"
