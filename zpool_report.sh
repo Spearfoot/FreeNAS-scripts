@@ -31,14 +31,19 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
 (
   echo "########## ZPool status report summary for all pools on server ${freenashost} ##########"
   echo ""
-  echo "+--------------+--------+------+------+------+----+--------+------+-----+"
-  echo "|Pool Name     |Status  |Read  |Write |Cksum |Used|Scrub   |Scrub |Last |"
-  echo "|              |        |Errors|Errors|Errors|    |Repaired|Errors|Scrub|"
-  echo "|              |        |      |      |      |    |Bytes   |      |Age  |"
-  echo "+--------------+--------+------+------+------+----+--------+------+-----+"
+  echo "+--------------+--------+------+------+------+----+----+--------+------+-----+"
+  echo "|Pool Name     |Status  |Read  |Write |Cksum |Used|Frag|Scrub   |Scrub |Last |"
+  echo "|              |        |Errors|Errors|Errors|    |    |Repaired|Errors|Scrub|"
+  echo "|              |        |      |      |      |    |    }Bytes   |      |Age  |"
+  echo "+--------------+--------+------+------+------+----+----+--------+------+-----+"
 ) >> ${logfile}
 
 for pool in $pools; do
+  if [ "${pool}" = "freenas-boot" ]; then
+    frag=""
+  else
+    frag="$(zpool list -H -o frag ${pool})"
+  fi
   status="$(zpool list -H -o health "$pool")"
   errors="$(zpool status "$pool" | grep -E "(ONLINE|DEGRADED|FAULTED|UNAVAIL|REMOVED)[ \t]+[0-9]+")"
   readErrors=0
@@ -98,14 +103,14 @@ for pool in $pools; do
     symbol=" "
   fi
   (
-  printf "|%-12s %1s|%-8s|%6s|%6s|%6s|%3s%%|%8s|%6s|%5s|\n" \
+  printf "|%-12s %1s|%-8s|%6s|%6s|%6s|%3s%%|%4s|%8s|%6s|%5s|\n" \
   "$pool" "$symbol" "$status" "$readErrors" "$writeErrors" "$cksumErrors" \
-  "$used" "$scrubRepBytes" "$scrubErrors" "$scrubAge"
+  "$used" "$frag" "$scrubRepBytes" "$scrubErrors" "$scrubAge"
   ) >> ${logfile}
   done
 
 (
-  echo "+--------------+--------+------+------+------+----+--------+------+-----+"
+  echo "+--------------+--------+------+------+------+----+----+--------+------+-----+"
 ) >> ${logfile}
 
 ###### for each pool ######
