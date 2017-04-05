@@ -34,7 +34,7 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
   echo "+--------------+--------+------+------+------+----+----+--------+------+-----+"
   echo "|Pool Name     |Status  |Read  |Write |Cksum |Used|Frag|Scrub   |Scrub |Last |"
   echo "|              |        |Errors|Errors|Errors|    |    |Repaired|Errors|Scrub|"
-  echo "|              |        |      |      |      |    |    }Bytes   |      |Age  |"
+  echo "|              |        |      |      |      |    |    |Bytes   |      |Age  |"
   echo "+--------------+--------+------+------+------+----+----+--------+------+-----+"
 ) >> ${logfile}
 
