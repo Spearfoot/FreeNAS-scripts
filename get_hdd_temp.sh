@@ -63,7 +63,10 @@ echo "=== DRIVES ==="
 
 for drive in $drives; do
   serial=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Serial Number" | awk '{print $3}')
-  temp=$(/usr/local/sbin/smartctl -A /dev/"${drive}" | grep "194 Temperature_Celsius" | awk '{print $10}')
+  temp=$(/usr/local/sbin/smartctl -A /dev/"${drive}" | grep "194 Temperature" | awk '{print $10}')
+  if [ -z "$temp" ]; then
+    temp=$(/usr/local/sbin/smartctl -A /dev/"${drive}" | grep "190 Airflow_Temperature" | awk '{print $10}')
+  fi
   brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Model Family" | awk '{print $3, $4, $5}')
   if [ -z "$brand" ]; then
     brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Device Model" | awk '{print $3, $4, $5}')

@@ -76,7 +76,8 @@ for drive in $drives; do
   awk -v device="${drive}" -v tempWarn=${tempWarn} -v tempCrit=${tempCrit} -v sectorsCrit=${sectorsCrit} \
   -v warnSymbol="${warnSymbol}" -v critSymbol=${critSymbol} '
   /Serial Number:/{serial=$3}
-  /194 Temperature_Celsius/{temp=$10}
+  /190 Airflow_Temperature/{temp=$10}
+  /194 Temperature/{temp=$10}
   /Power_On_Hours/{split($10,a,"+");sub(/h/,"",a[1]);onHours=a[1];}
   /Start_Stop_Count/{startStop=$10}
   /Spin_Retry_Count/{spinRetry=$10}
