@@ -6,11 +6,13 @@
 email=""
 
 freenashost=$(hostname -s | tr '[:lower:]' '[:upper:]')
+smartctl=/usr/local/sbin/smartctl
 logfile="/tmp/smart_report.tmp"
 subject="SMART Status Report for ${freenashost}"
 tempWarn=40
 tempCrit=45
 sectorsCrit=10
+testAgeWarn=1
 warnSymbol="?"
 critSymbol="!"
 
@@ -22,18 +24,18 @@ critSymbol="!"
 
 # 2. A systcl-based technique suggested on the FreeNAS forum:
 #drives=$(for drive in $(sysctl -n kern.disks); do \
-#if [ "$(/usr/local/sbin/smartctl -i /dev/${drive} | grep "SMART support is: Enabled" | awk '{print $3}')" ]
+#if [ "$("${smartctl}" -i /dev/${drive} | grep "SMART support is: Enabled" | awk '{print $3}')" ]
 #then printf ${drive}" "; fi done | awk '{for (i=NF; i!=0 ; i--) print $i }')
 
 # 3. A smartctl-based function:
 get_smart_drives()
 {
-  gs_drives=$(/usr/local/sbin/smartctl --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///' | tr '\n' ' ')
+  gs_drives=$("${smartctl}" --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///' | tr '\n' ' ')
 
   gs_smartdrives=""
 
   for gs_drive in $gs_drives; do
-    gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
+    gs_smart_flag=$("${smartctl}" -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
     if [ "$gs_smart_flag" = "Enabled" ]; then
       gs_smartdrives=$gs_smartdrives" "${gs_drive}
     fi
@@ -63,18 +65,20 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
 (
  echo "########## SMART status report summary for all drives on server ${freenashost} ##########"
  echo ""
- echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+"
- echo "|Device|Serial            |Temp|Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |Command|"
- echo "|      |Number            |    |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks     |Fly   |Timeout|"
- echo "|      |                  |    |Hours|Count|Count|       |Sectors|Sectors |      |          |Writes|Count  |"
- echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+"
+ echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
+ echo "|Device|Serial            |Temp|Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |Command|Last|"
+ echo "|      |Number            |    |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks     |Fly   |Timeout|Test|"
+ echo "|      |                  |    |Hours|Count|Count|       |Sectors|Sectors |      |          |Writes|Count  |Age |"
+ echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
 ) >> ${logfile}
 
 for drive in $drives; do
   (
-  /usr/local/sbin/smartctl -A -i -v 7,hex48 /dev/"${drive}" | \
-  awk -v device="${drive}" -v tempWarn=${tempWarn} -v tempCrit=${tempCrit} -v sectorsCrit=${sectorsCrit} \
-  -v warnSymbol="${warnSymbol}" -v critSymbol=${critSymbol} '
+  lastTestHours=$("${smartctl}" -l selftest /dev/"${drive}" | grep "# 1" | awk '{print $9}')
+  "${smartctl}" -A -i -v 7,hex48 /dev/"${drive}" | \
+  awk -v device=${drive} -v tempWarn=${tempWarn} -v tempCrit=${tempCrit} -v sectorsCrit=${sectorsCrit} \
+  -v testAgeWarn=${testAgeWarn} -v warnSymbol="${warnSymbol}" -v critSymbol=${critSymbol} \
+  -v lastTestHours="${lastTestHours}" '
   /Serial Number:/{serial=$3}
   /190 Airflow_Temperature/{temp=$10}
   /194 Temperature/{temp=$10}
@@ -88,6 +92,7 @@ for drive in $drives; do
   /High_Fly_Writes/{hiFlyWr=$10}
   /Command_Timeout/{cmdTimeout=$10}
   END {
+      testAge=sprintf("%.0f", (onHours - lastTestHours) / 24);
       if (temp > tempCrit || reAlloc > sectorsCrit || pending > sectorsCrit || offlineUnc > sectorsCrit)
           device=device " " critSymbol;
       else if (temp > tempWarn || reAlloc > 0 || pending > 0 || offlineUnc > 0)
@@ -100,29 +105,29 @@ for drive in $drives; do
       }
       if (hiFlyWr == "") hiFlyWr="N/A";
       if (cmdTimeout == "") cmdTimeout="N/A";
-      printf "|%-6s|%-18s| %s |%5s|%5s|%5s|%7s|%7s|%8s|%6s|%10s|%6s|%7s|\n",
+      printf "|%-6s|%-18s| %s |%5s|%5s|%5s|%7s|%7s|%8s|%6s|%10s|%6s|%7s|%4s|\n",
       device, serial, temp, onHours, startStop, spinRetry, reAlloc, pending, offlineUnc,
-      seekErrors, totalSeeks, hiFlyWr, cmdTimeout;
+      seekErrors, totalSeeks, hiFlyWr, cmdTimeout, testAge;
       }'
   ) >> ${logfile}
 done
 
 (
-  echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+"
+  echo "+------+------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
 ) >> ${logfile}
 
 ###### for each drive ######
 for drive in $drives; do
-  brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Model Family" | awk '{print $3, $4, $5}')
+  brand=$("${smartctl}" -i /dev/"${drive}" | grep "Model Family" | awk '{print $3, $4, $5}')
   if [ -z "$brand" ]; then
-    brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Device Model" | awk '{print $3, $4, $5}')
+    brand=$("${smartctl}" -i /dev/"${drive}" | grep "Device Model" | awk '{print $3, $4, $5}')
   fi
-  serial=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Serial Number" | awk '{print $3}')
+  serial=$("${smartctl}" -i /dev/"${drive}" | grep "Serial Number" | awk '{print $3}')
   (
   echo ""
   echo "########## SMART status report for ${drive} drive (${brand}: ${serial}) ##########"
-  /usr/local/sbin/smartctl -n never -H -A -l error /dev/"${drive}"
-  /usr/local/sbin/smartctl -n never -l selftest /dev/"${drive}" | grep "# 1 \|Num" | cut -c6-
+  "${smartctl}" -n never -H -A -l error /dev/"${drive}"
+  "${smartctl}" -n never -l selftest /dev/"${drive}" | grep "# 1 \|Num" | cut -c6-
   ) >> ${logfile}
 done
 
