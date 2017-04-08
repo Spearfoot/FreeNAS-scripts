@@ -95,7 +95,7 @@ for drive in $drives; do
       testAge=sprintf("%.0f", (onHours - lastTestHours) / 24);
       if (temp > tempCrit || reAlloc > sectorsCrit || pending > sectorsCrit || offlineUnc > sectorsCrit)
           device=device " " critSymbol;
-      else if (temp > tempWarn || reAlloc > 0 || pending > 0 || offlineUnc > 0)
+      else if (temp > tempWarn || reAlloc > 0 || pending > 0 || offlineUnc > 0 || testAge > testAgeWarn)
           device=device " " warnSymbol;
       seekErrors=sprintf("%d", seekErrors);
       totalSeeks=sprintf("%d", totalSeeks);
