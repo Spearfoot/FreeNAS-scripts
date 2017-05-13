@@ -45,12 +45,12 @@ cores=$(sysctl -a | grep "hw.ncpu" | awk '{print $2}')
 printf "=== CPU (%s) ===\n" "${cores}"
 cores=$((cores - 1))
 for core in $(seq 0 $cores); do
-	temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
-	if [ "$temp" -lt 0 ]; then
-		temp="--n/a--"
-	else
-		temp="${temp}C"
-	fi
+  temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
+  if [ "$temp" -lt 0 ]; then
+    temp="--n/a--"
+  else
+    temp="${temp}C"
+  fi
   printf "CPU %2.2s: %5s\n" "$core" "$temp"
 done
 echo ""
