@@ -1,5 +1,7 @@
 #!/bin/sh
 
+smartctl=/usr/local/sbin/smartctl
+
 # Display current temperature of all SMART-enabled drives
 
 # We need a list of the SMART-enabled drives on the system. Choose one of these
@@ -16,12 +18,12 @@
 # 3. A smartctl-based function:
 get_smart_drives()
 {
-  gs_drives=$(/usr/local/sbin/smartctl --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///' | tr '\n' ' ')
+  gs_drives=$("${smartctl}" --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///' | tr '\n' ' ')
 
   gs_smartdrives=""
 
   for gs_drive in $gs_drives; do
-    gs_smart_flag=$(/usr/local/sbin/smartctl -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
+    gs_smart_flag=$("${smartctl}" -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
     if [ "$gs_smart_flag" = "Enabled" ]; then
       gs_smartdrives=$gs_smartdrives" "${gs_drive}
     fi
@@ -42,17 +44,15 @@ get_smart_drives drives
 cores=$(sysctl -a | grep "hw.ncpu" | awk '{print $2}')
 printf "=== CPU (%s) ===\n" "${cores}"
 cores=$((cores - 1))
-
 for core in $(seq 0 $cores); do
-  temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
-  if [ "$temp" -lt 0 ]; then
-    temp="--N/A--"
-  else
-    temp="${temp}C"
-  fi
-  printf "CPU %s: %4s\n" "$core" "$temp"
+	temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
+	if [ "$temp" -lt 0 ]; then
+		temp="--n/a--"
+	else
+		temp="${temp}C"
+	fi
+  printf "CPU %2.2s: %5s\n" "$core" "$temp"
 done
-
 echo ""
 
 #############################
@@ -62,14 +62,21 @@ echo ""
 echo "=== DRIVES ==="
 
 for drive in $drives; do
-  serial=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Serial Number" | awk '{print $3}')
-  temp=$(/usr/local/sbin/smartctl -A /dev/"${drive}" | grep "194 Temperature" | awk '{print $10}')
+  serial=$("${smartctl}" -i /dev/${drive} | grep "Serial Number" | awk '{print $3}')
+  capacity=$("${smartctl}" -i /dev/${drive} | grep "User Capacity" | awk '{print $5 $6}')
+  temp=$("${smartctl}" -A /dev/${drive} | grep "194 Temperature" | awk '{print $10}')
   if [ -z "$temp" ]; then
-    temp=$(/usr/local/sbin/smartctl -A /dev/"${drive}" | grep "190 Airflow_Temperature" | awk '{print $10}')
+    temp=$("${smartctl}" -A /dev/"${drive}" | grep "190 Airflow_Temperature" | awk '{print $10}')
   fi
-  brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Model Family" | awk '{print $3, $4, $5}')
+  if [ -z "$temp" ]; then
+    temp="-n/a-"
+  else
+    temp="${temp}C"
+  fi
+  brand=$("${smartctl}" -i /dev/${drive} | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}')
   if [ -z "$brand" ]; then
-    brand=$(/usr/local/sbin/smartctl -i /dev/"${drive}" | grep "Device Model" | awk '{print $3, $4, $5}')
+    brand=$("${smartctl}" -i /dev/${drive} | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}')
   fi
-  printf "%5.5s: %3.3sC %s %s\n" "$drive" "$temp" "$brand" "$serial" 
+  printf "%6.6s: %5s %-8s %-20.20s %s\n" "$drive" "$temp" "$capacity" "$serial" "$brand" 
 done
+
