@@ -45,7 +45,8 @@ cores=$(sysctl -a | grep "hw.ncpu" | awk '{print $2}')
 printf "=== CPU (%s) ===\n" "${cores}"
 cores=$((cores - 1))
 for core in $(seq 0 $cores); do
-  temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
+#  temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
+  temp=$(sysctl -a | grep "cpu.${core}.temperature" | awk '{print $2}')
   if [ "$temp" -lt 0 ]; then
     temp="--n/a--"
   else
