@@ -45,8 +45,13 @@ cores=$(sysctl -a | grep "hw.ncpu" | awk '{print $2}')
 printf "=== CPU (%s) ===\n" "${cores}"
 cores=$((cores - 1))
 for core in $(seq 0 $cores); do
-#  temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-25 | tr -d "\n")"
-  temp=$(sysctl -a | grep "cpu.${core}.temperature" | awk '{print $2}')
+
+  if [ "$core" -gt 9 ] ; then # Added to test for more than 9 cpu format differently - tfast500
+ 	temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c24-26 | tr -d "\n")"
+  else
+ 	temp="$(sysctl -a | grep "cpu.${core}.temp" | cut -c23-25 | tr -d "\n")"
+  fi
+
   if [ "$temp" -lt 0 ]; then
     temp="--n/a--"
   else
