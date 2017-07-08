@@ -54,23 +54,28 @@ Some hard drives retain these values when powered down, but some do not - includ
 ***
 # get_hdd_temp.sh
 
-Displays the current temperature of your system's CPUs and drives. Drive output includes: the device ID, temperature (in Centigrade), drive model/brand, and serial number. Here is sample output from one of my systems:
+Displays the current temperature of your system's CPUs and drives. 
+
+Drive output includes: the device ID, temperature (in Centigrade), capacity, serial number, and drive family/model. Here is sample output from one of my systems:
 
 ```
-=== CPU (4) ===
-CPU 0: 38C
-CPU 1: 38C
-CPU 2: 38C
-CPU 3: 38C
+=== CPU (2) ===
+CPU  1: [35C]
+CPU  2: [38C]
 
 === DRIVES ===
-da1:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-da2:  34C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-da3:  33C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-da4:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-da5:  32C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-da6:  31C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-da7:  21C INTEL SSDSC2BA100G3L  BTTV99999999999999
-da8:  31C Hitachi/HGST Ultrastar 7K4000 PK999999999999
-ada0:  29C Western Digital Green WD-WMAZA9999999
+   da1:   19C [8.58GB] SN9999999999         INTEL SSDSC2BA100G3L   
+   da2:   39C [4.00TB] SN9999999999         HGST Deskstar NAS  
+   da3:   36C [4.00TB] SN9999999999         HGST Deskstar NAS  
+   da4:   26C [240GB]  SN9999999999         Intel 730 and DC S35x0/3610/3700
+   da5:   27C [2.00TB] SN9999999999         Western Digital Green  
+   da6:   28C [2.00TB] SN9999999999         Western Digital Red  
+   da7:   18C [8.58GB] SN9999999999         INTEL SSDSC2BA100G3L   
+   da8:   31C [6.00TB] SN9999999999         Western Digital Black  
+   da9:   29C [2.00TB] SN9999999999         Western Digital Green  
+  da10:   29C [2.00TB] SN9999999999         Western Digital Red  
+  da11:   33C [4.00TB] SN9999999999         HGST HDN726040ALE614   
+  da12:   37C [4.00TB] SN9999999999         HGST HDN726040ALE614   
+  da13:   37C [4.00TB] SN9999999999         Western Digital Re  
+  da14:   38C [4.00TB] SN9999999999         Western Digital Re  
 ```
