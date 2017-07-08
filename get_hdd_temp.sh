@@ -23,7 +23,7 @@ ipmiuser=root
 
 # IPMI password file. This is a file containing the IPMI user's password
 # on a single line and should have 0600 permissions:
-ipmipwfile=/root/.ssh/password
+ipmipwfile=/root/ipmi_password
 
 # Full path to 'ipmitool' program:
 ipmitool=/usr/local/bin/ipmitool
@@ -121,10 +121,13 @@ for drive in $drives; do
   else
     temp="${temp}C"
   fi
-  brand=$("$smartctl" -i "$drive" | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}')
-  if [ -z "$brand" ]; then
-    brand=$("$smartctl" -i "$drive" | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}')
+  dfamily=$("$smartctl" -i "$drive" | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
+  dmodel=$("$smartctl" -i "$drive" | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
+  if [ -z "$dfamily" ]; then
+    dinfo="$dmodel"
+  else
+    dinfo="$dfamily ($dmodel)"
   fi
-  printf '%6.6s: %5s %-8s %-20.20s %s\n' "$(basename "$drive")" "$temp" "$capacity" "$serial" "$brand" 
+  printf '%6.6s: %5s %-8s %-20.20s %s\n' "$(basename "$drive")" "$temp" "$capacity" "$serial" "$dinfo" 
 done
 
