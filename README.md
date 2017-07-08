@@ -54,9 +54,17 @@ Some hard drives retain these values when powered down, but some do not - includ
 ***
 # get_hdd_temp.sh
 
-Displays the current temperature of your system's CPUs and drives. 
+Displays the current temperature of your system's CPU and drives. 
 
-Drive output includes: the device ID, temperature (in Centigrade), capacity, serial number, and drive family/model. Here is sample output from one of my systems:
+By default, the script uses `sysctl` to determine the number of CPU cores and report their temperatures. This reports a temperature for each core on systems equipped with modern multi-core CPUs. The optional IPMI support, if enabled, reports a single temperature for each socketed CPU. The latter result is probably more useful for monitoring CPU status.
+
+To enable IPMI support, edit the script and:
+* Set the `use_ipmi` variable to `1`
+* Specify the IPMI host's IP address or DNS-resolvable hostname in the `ipmihost` variable.
+* Specify the IPMI username in the `ipmiuser` variable.
+* Specify the IPMI password file location in the `ipmipwfile` variable. This is a simple text file containing the IPMI user's password on a single line. You should protect this file by setting its permissions to 0600.
+
+Drive output includes: the device ID, temperature (in Centigrade), capacity, serial number, and drive family/model. Here is sample output from one of my systems equipped with dual CPUs, using the IPMI feature and with serial numbers obfuscated:
 
 ```
 === CPU (2) ===
@@ -64,18 +72,18 @@ CPU  1: [35C]
 CPU  2: [38C]
 
 === DRIVES ===
-   da1:   19C [8.58GB] SN9999999999         INTEL SSDSC2BA100G3L   
-   da2:   39C [4.00TB] SN9999999999         HGST Deskstar NAS  
-   da3:   36C [4.00TB] SN9999999999         HGST Deskstar NAS  
-   da4:   26C [240GB]  SN9999999999         Intel 730 and DC S35x0/3610/3700
-   da5:   27C [2.00TB] SN9999999999         Western Digital Green  
-   da6:   28C [2.00TB] SN9999999999         Western Digital Red  
-   da7:   18C [8.58GB] SN9999999999         INTEL SSDSC2BA100G3L   
-   da8:   31C [6.00TB] SN9999999999         Western Digital Black  
-   da9:   29C [2.00TB] SN9999999999         Western Digital Green  
-  da10:   29C [2.00TB] SN9999999999         Western Digital Red  
-  da11:   33C [4.00TB] SN9999999999         HGST HDN726040ALE614   
-  da12:   37C [4.00TB] SN9999999999         HGST HDN726040ALE614   
-  da13:   37C [4.00TB] SN9999999999         Western Digital Re  
-  da14:   38C [4.00TB] SN9999999999         Western Digital Re  
+   da1:   19C [8.58GB] SN9999999999999999   INTEL SSDSC2BA100G3L
+   da2:   39C [4.00TB] SN9999999999999999   HGST Deskstar NAS (HGST HDN724040ALE640)
+   da3:   36C [4.00TB] SN9999999999999999   HGST Deskstar NAS (HGST HDN724040ALE640)
+   da4:   27C [240GB]  SN9999999999999999   Intel 730 and DC S35x0/3610/3700 (INTEL SSDSC2BB240G4)
+   da5:   27C [2.00TB] SN9999999999999999   Western Digital Green (WDC WD20EARX-00PASB0)
+   da6:   28C [2.00TB] SN9999999999999999   Western Digital Red (WDC WD20EFRX-68EUZN0)
+   da7:   19C [8.58GB] SN9999999999999999   INTEL SSDSC2BA100G3L
+   da8:   31C [6.00TB] SN9999999999999999   Western Digital Black (WDC WD6001FZWX-00A2VA0)
+   da9:   29C [2.00TB] SN9999999999999999   Western Digital Green (WDC WD20EARX-00PASB0)
+  da10:   29C [2.00TB] SN9999999999999999   Western Digital Red (WDC WD20EFRX-68EUZN0)
+  da11:   34C [4.00TB] SN9999999999999999   HGST HDN726040ALE614
+  da12:   37C [4.00TB] SN9999999999999999   HGST HDN726040ALE614
+  da13:   37C [4.00TB] SN9999999999999999   Western Digital Re (WDC WD4000FYYZ-01UL1B1)
+  da14:   38C [4.00TB] SN9999999999999999   Western Digital Re (WDC WD4000FYYZ-01UL1B1)
 ```
