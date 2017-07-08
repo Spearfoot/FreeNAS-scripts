@@ -87,3 +87,4 @@ CPU  2: [38C]
   da13:   37C [4.00TB] SN9999999999999999   Western Digital Re (WDC WD4000FYYZ-01UL1B1)
   da14:   38C [4.00TB] SN9999999999999999   Western Digital Re (WDC WD4000FYYZ-01UL1B1)
 ```
+(Thanks to P. Robar for his helpful suggestions with respect to `sysctl` and the `get_smart_drives()` function.)
