@@ -60,7 +60,7 @@ bandit-FreeNAS-11.0-RELEASE-a2dc21583-20170710234500.db
 
 Edit this script and specify the target dataset where you want the backup files copied.
 
-Optional feature: specify your email address to receive an email message whenever the script executes. The script will create an encrypted tarball containing the configuration file, which it will include with the email message as a MIME-encoded attachment. 
+Optional feature: you may optionally the script to send an email message whenever the script executes. The script will create an encrypted tarball containing the configuration file, which it will include with the email message as a MIME-encoded attachment. To enable this feature you must specify your email address and create a passphrase file.
 
 The attachment filename is formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.tar.gz.enc_. Here is an example from a recent backup on my server named _bandit_:
 
