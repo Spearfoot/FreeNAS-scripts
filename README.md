@@ -26,7 +26,11 @@ You will need to edit the script and enter your email address before using it. Y
 ***
 # save_config.sh
 
-Saves your FreeNAS system configuration file to a dataset you specify. Supports both FreeNAS 9.x and the newer Corral version. The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _boomer_:
+Saves your FreeNAS system configuration file to a dataset you specify. 
+
+Supports both the now-defunct Corral and all SQLite-based versions of FreeNAS: 11.x, 9.x, etc.
+
+The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _boomer_:
 
 ```
 boomer-FreeNAS-9.10.2-U2-e1497f2-20170315224905.db
@@ -41,6 +45,38 @@ Optional features:
   ```
   felix-configBundle-20170315224905.tgz
   ```
+***  
+# save_config_enc.sh
+
+Saves your FreeNAS system configuration file to a dataset you specify, optionally sending you an email message containing the configuration file in an encrypted tarball.
+
+Supports the versions of FreeNAS which use an SQLite-based configuration file: these include FreeNAS 11.x, 9.x, and probably earlier versions as well... but not Corral. 
+
+The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _bandit_:
+
+```
+bandit-FreeNAS-11.0-RELEASE-a2dc21583-20170710234500.db
+```
+
+Edit this script and specify the target dataset where you want the backup files copied.
+
+Optional feature: specify your email address to receive an email message whenever the script executes. The script will create an encrypted tarball containing the configuration file, which it will include with the email message as a MIME-encoded attachment. 
+
+The attachment filename is formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.tar.gz.enc_. Here is an example from a recent backup on my server named _bandit_:
+
+```
+bandit-FreeNAS-11.0-RELEASE-a2dc21583-20170710234500.tar.gz.enc
+```
+To create the attachment, the script first validates the configuration file by testing it with the `sqlite3` program's `pragma_integrity_check` option. If successfull, it next uses `tar` to store the configuration file in a gzipped tarball. Finally, it encrypts the tarball file with `openssl`, using a default cipher type of `-aes256` and a passphrase you specify in a passphrase file. You may use a different cipher by modifying the `enc_cipher` variable. The passphrase file is simply a text file, with the passphrase stored in the first line of the file. Specify this file's location in the `enc_passphrasefile` variable.
+
+To decrypt the email attachment, first save it to your local system. Then use this command to decrypt it:
+
+`openssl enc -d -aes256 -pass file:[passphrase_file] -in [encrypted_file] -out [unencrypted_file]`
+
+Where:
+* `passphrase_file` is a file containing the same passphrase you configured on your FreeNAS server
+* `encrypted_file` is your locally-saved copy of the email attachment
+* `unencrypted_file` is the unencrypted contents of the email attachment
 ***
 # set_hdd_erc.sh
 
