@@ -60,14 +60,14 @@ bandit-FreeNAS-11.0-RELEASE-a2dc21583-20170710234500.db
 
 Edit this script and specify the target dataset where you want the backup files copied.
 
-Optional feature: you may optionally the script to send an email message whenever the script executes. The script will create an encrypted tarball containing the configuration file, which it will include with the email message as a MIME-encoded attachment. To enable this feature you must specify your email address and create a passphrase file.
+Optional feature: you may configure the script to send an email message whenever it script executes. The script will create an encrypted tarball containing the configuration file, which it will include with the email message as a MIME-encoded attachment. To enable this feature you must specify your email address and create a passphrase file.
 
 The attachment filename is formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.tar.gz.enc_. Here is an example from a recent backup on my server named _bandit_:
 
 ```
 bandit-FreeNAS-11.0-RELEASE-a2dc21583-20170710234500.tar.gz.enc
 ```
-To create the attachment, the script first validates the configuration file by testing it with the `sqlite3` program's `pragma_integrity_check` option. If successfull, it next uses `tar` to store the configuration file in a gzipped tarball. Finally, it encrypts the tarball file with `openssl`, using a default cipher type of `-aes256` and a passphrase you specify in a passphrase file. You may use a different cipher by modifying the `enc_cipher` variable. The passphrase file is simply a text file, with the passphrase stored in the first line of the file. Specify this file's location in the `enc_passphrasefile` variable.
+To create the attachment, the script first validates the configuration file by testing it with the `sqlite3` program's `pragma integrity_check;` option. If successfull, it next uses `tar` to store the configuration file in a gzipped tarball. Finally, it encrypts the tarball file with `openssl`, using a default cipher type of `-aes256` and a passphrase you specify in a passphrase file. You may use a different cipher by modifying the `enc_cipher` variable. The passphrase file is simply a text file, with the passphrase stored in the first line of the file. Specify this file's location in the `enc_passphrasefile` variable.
 
 To decrypt the email attachment, first save it to your local system. Then use this command to decrypt it:
 
