@@ -68,7 +68,7 @@ if [ "$use_ipmi" -eq 0 ]; then
   printf '=== CPU (%s) ===\n' "$cpucores"
   cpucores=$((cpucores - 1))
   for core in $(seq 0 $cpucores); do
-    temp=$(sysctl -n dev.cpu."$core".temperature)
+    temp=$(sysctl -n dev.cpu."$core".temperature|sed 's/\..*$//g')
     if [ "$temp" -lt 0 ]; then
       temp="--n/a--"
     else
