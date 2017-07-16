@@ -68,8 +68,7 @@ if [ "$use_ipmi" -eq 0 ]; then
   printf '=== CPU (%s) ===\n' "$cpucores"
   cpucores=$((cpucores - 1))
   for core in $(seq 0 $cpucores); do
-    temp=$(sysctl -n dev.cpu."$core".temperature)
-    temp=$(echo $temp | sed 's/\..*$//g')
+    temp=$(sysctl -n dev.cpu."$core".temperature|sed 's/\..*$//g')
     if [ "$temp" -lt 0 ]; then
       temp="--n/a--"
     else
@@ -84,7 +83,6 @@ else
   printf '=== CPU (%s) ===\n' "$cpucores"
   if [ "$cpucores" -eq 1 ]; then
     temp=$("$ipmitool" -I lanplus -H "$ipmihost" -U "$ipmiuser" -f "$ipmipwfile" sdr elist all | grep "CPU Temp" | awk '{print $10}')
-    temp=$(echo $temp | sed 's/\..*$//g')
     if [ "$temp" -lt 0 ]; then
        temp="-n/a-"
     else
@@ -94,7 +92,6 @@ else
   else
     for core in $(seq 1 "$cpucores"); do
       temp=$("$ipmitool" -I lanplus -H "$ipmihost" -U "$ipmiuser" -f "$ipmipwfile" sdr elist all | grep "CPU${core} Temp" | awk '{print $10}')
-      temp=$(echo $temp | sed 's/\..*$//g')
       if [ "$temp" -lt 0 ]; then
          temp="-n/a-"
        else
