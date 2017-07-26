@@ -37,7 +37,7 @@ my $smartctl = "/usr/local/sbin/smartctl";
 # 1 = on:   use IPMI
 # 0 = off:  use sysctl instead of IPMI 
 
-my $useipmi = 1;
+my $useipmi = 0;
 
 # IPMI username and password file. The password file is a text file with the
 # IPMI user's password on the first line. Be sure to set permissions to 0600
