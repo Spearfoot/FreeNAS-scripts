@@ -1,9 +1,11 @@
 # FreeNAS Scripts
-Handy shell scripts for use on FreeNAS servers
+Handy shell and Perl scripts for use on FreeNAS servers
 
-These are my versions of the useful scripts available at the ["Scripts to report SMART, ZPool and UPS status, HDD/CPU T°, HDD identification and backup the config"](https://forums.freenas.org/index.php?threads/scripts-to-report-smart-zpool-and-ups-status-hdd-cpu-t%C2%B0-hdd-identification-and-backup-the-config.27365/) thread on the FreeNAS forum. The original author is FreeNAS forum member BiduleOhm, with others contributing suggestions and code changes. I have modified the syntax and made minor changes in formatting and spacing of the generated reports.
+Most of the shell scripts here are my versions of the useful scripts available at the ["Scripts to report SMART, ZPool and UPS status, HDD/CPU T°, HDD identification and backup the config"](https://forums.freenas.org/index.php?threads/scripts-to-report-smart-zpool-and-ups-status-hdd-cpu-t%C2%B0-hdd-identification-and-backup-the-config.27365/) thread on the FreeNAS forum. The original author is FreeNAS forum member BiduleOhm, with others contributing suggestions and code changes. I have modified the syntax and made minor changes in formatting and spacing of the generated reports.
 
 I used the excellent shell script static analysis tool at https://www.shellcheck.net to insure that all of the code is POSIX-compliant and free of issues. But this doesn't mean you won't find any errors.  ☺️
+
+All of the Perl code is my own contribution.
 ***
 # smart_report.sh
 
@@ -124,3 +126,46 @@ CPU  2: [38C]
   da14:   38C [4.00TB] SN9999999999999999   Western Digital Re (WDC WD4000FYYZ-01UL1B1)
 ```
 (Thanks to P. Robar for his helpful suggestions with respect to `sysctl` usage and the `get_smart_drives()` function.)
+# get-system-temps.pl
+
+Displays the current temperature of your system's CPU and drives.
+
+This is a Perl version of the `get_cpu_temp.sh` script above. 
+
+By default, the script uses `sysctl` to determine the number of CPU cores and report their temperatures. This reports a temperature for each core on systems equipped with modern multi-core CPUs. The optional IPMI support, if enabled, reports a single temperature for each socketed CPU. The latter result is probably more useful for monitoring CPU status.
+
+To enable IPMI support, edit the script and:
+* Set the `$useipmi` variable to `1`
+* Specify the IPMI host's IP address or DNS-resolvable hostname in the `$ipmihost` variable.
+* Specify the IPMI username in the `$ipmiuser` variable.
+* Specify the IPMI password file location in the `$ipmipwfile` variable. This is a simple text file containing the IPMI user's password on a single line. You should protect this file by setting its permissions to 0600.
+
+Drive output includes: the device ID, temperature (in Centigrade), capacity, drive type (HDD or SDD), serial number, drive model, and (when available) the model family. Here is sample output from one of my systems equipped with dual CPUs, using the IPMI feature and with serial numbers obfuscated:
+
+```
+==========
+
+bandit.spearfoot.net (IPMI host: falcon.ipmi.spearfoot.net)
+
+=== CPU (2) ===
+CPU  1:  35C
+CPU  2:  39C
+
+=== Drives ===
+   da1:  20C [ 8.58 GB SSD] SN999999999999999999 INTEL SSDSC2BA100G3L 
+   da2:  37C [ 4.00 TB HDD] SN999999999999999999 HGST HDN724040ALE640 (HGST Deskstar NAS)
+   da3:  35C [ 4.00 TB HDD] SN999999999999999999 HGST HDN724040ALE640 (HGST Deskstar NAS)
+   da4:  28C [  240 GB SSD] SN999999999999999999 INTEL SSDSC2BB240G4 (Intel 730 and DC S35x0/3610/3700 Series SSDs)
+   da5:  26C [ 2.00 TB HDD] SN999999999999999999 WDC WD20EARX-00PASB0 (Western Digital Green)
+   da6:  28C [ 2.00 TB HDD] SN999999999999999999 WDC WD20EFRX-68EUZN0 (Western Digital Red)
+   da7:  19C [ 8.58 GB SSD] SN999999999999999999 INTEL SSDSC2BA100G3L 
+   da8:  31C [ 6.00 TB HDD] SN999999999999999999 WDC WD6001FZWX-00A2VA0 (Western Digital Black)
+   da9:  29C [ 2.00 TB HDD] SN999999999999999999 WDC WD20EARX-00PASB0 (Western Digital Green)
+  da10:  28C [ 2.00 TB HDD] SN999999999999999999 WDC WD20EFRX-68EUZN0 (Western Digital Red)
+  da11:  32C [ 4.00 TB HDD] SN999999999999999999 HGST HDN726040ALE614 
+  da12:  35C [ 4.00 TB HDD] SN999999999999999999 HGST HDN726040ALE614 
+  da13:  36C [ 4.00 TB HDD] SN999999999999999999 WDC WD4000FYYZ-01UL1B1 (Western Digital Re)
+  da14:  37C [ 4.00 TB HDD] SN999999999999999999 WDC WD4000FYYZ-01UL1B1 (Western Digital Re)
+```
+
+
