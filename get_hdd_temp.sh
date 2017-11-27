@@ -108,26 +108,60 @@ fi
 #############################
 
 echo "=== DRIVES ==="
-
+　
+# nvme drives may be reported as nvd but for smartctl purposes we need to interrogate /dev/nvme not /dev/nvd
+drives=`echo $drives | sed -e "s/nvd/nvme/g"`
+　
 for drive in $drives; do
-  serial=$("$smartctl" -i "$drive" | grep "Serial Number" | awk '{print $3}')
-  capacity=$("$smartctl" -i "$drive" | grep "User Capacity" | awk '{print $5 $6}')
-  temp=$("$smartctl" -A "$drive" | grep "194 Temperature" | awk '{print $10}')
+  smart_data=$($smartctl -iA /dev/$drive)
+　
+　
+  family=$(echo "$smart_data" | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
+  model=$(echo "$smart_data" | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
+  if [ -z "$model" ]; then
+    model=$(echo "$smart_data" | grep "Model Number:" |  sed -e 's/^Model Number:[[:space:]]*//')
+  fi
+　
+  if [ -z "$family" ]; then
+    drive_info="$model"
+  else
+    drive_info="$family ($model)"
+  fi
+  if [ -z "$drive_info" ]; then
+    vendor=$(echo "$smart_data" | egrep "^Vendor: " | sed -e 's/^Vendor:[[:space:]]*//')
+    product=$(echo "$smart_data" | egrep "^Product: " | sed -e 's/Product:[[:space:]]*//')
+    drive_info="$vendor $product"
+  fi
+　
+　
+  serial=$(echo "$smart_data" | grep -i "Serial Number" | awk '{print $3}')
+　
+  capacity_text=$(echo "$smart_data" | grep "User Capacity" | sed -E 's/^User Capacity:.*\[([0-9a-zA-Z .]+)\][[:space:]]*$/\1/g')
+  if [ -z "$capacity_text" ]; then
+   capacity_text=$(echo "$smart_data" | grep "Total NVM Capacity" | sed -E 's/^Total NVM Capacity:.*\[([0-9a-zA-Z .]+)\][[:space:]]*$/\1/g')
+  fi
+  if [ -z "$capacity_text" ]; then
+   capacity_text=$(echo "$smart_data" | grep "Namespace 1 Size/Capacity" | sed -E 's/^Namespace 1 Size\/Capacity:.*\[([0-9a-zA-Z .]+)\][[:space:]]*$/\1/g')
+  fi
+  capacity_val=$(echo "$capacity_text" | sed -E 's/ .*$//g' | sed -E 's/(\.[1-9]*)0+$/\1/g' | sed -E 's/\.$//g' )
+  capacity_unit=$(echo "$capacity_text" | sed -E 's/^.* //g')
+　
+　
+  temp=$(echo "$smart_data" | grep "194 Temperature" | awk '{print $10}')
   if [ -z "$temp" ]; then
-    temp=$("$smartctl" -A "$drive" | grep "190 Airflow_Temperature" | awk '{print $10}')
+    temp=$(echo "$smart_data" | grep "190 Airflow_Temperature" | awk '{print $10}')
+  fi
+  if [ -z "$temp" ]; then
+    temp=$(echo "$smart_data" | egrep "^Current Drive Temperature:" | awk '{print $4}')
+  fi
+  if [ -z "$temp" ]; then
+    temp=$(echo "$smart_data" | egrep "^Temperature:" | awk '{print $2}')
   fi
   if [ -z "$temp" ]; then
     temp="-n/a-"
   else
     temp="${temp}C"
   fi
-  dfamily=$("$smartctl" -i "$drive" | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
-  dmodel=$("$smartctl" -i "$drive" | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
-  if [ -z "$dfamily" ]; then
-    dinfo="$dmodel"
-  else
-    dinfo="$dfamily ($dmodel)"
-  fi
-  printf '%6.6s: %5s %-8s %-20.20s %s\n' "$(basename "$drive")" "$temp" "$capacity" "$serial" "$dinfo" 
+　
+  printf '%6.6s: %5s    %5s%-3s    %-20.20s %s\n' "$(basename "$drive")" "$temp" "$capacity_val" "$capacity_unit" "$serial" "$drive_info"
 done
-
