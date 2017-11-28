@@ -132,8 +132,18 @@ for drive in $drives; do
     product=$(echo "$smart_data" | egrep "^Product: " | sed -e 's/Product:[[:space:]]*//')
     drive_info="$vendor $product"
   fi
-　
-　
+
+  type=$(echo "$smart_data" | grep 'SATA Version is:  ' | sed -E 's/^SATA Version is:  (SATA [0-9]\.[0-9]), ([0-9]\.[0-9]) G.*$/\1 [\2G\/s]/g' | sed -E 's/\.0G/G/g')
+  if [ -z "$type" ]; then
+    type=$(echo "$smart_data" | grep 'Transport protocol:   SAS' | sed -E 's/^Transport protocol:   (SAS.*)$/\1/g')
+  fi
+  if [ -z "$type" ]; then
+    type=$(echo "$smart_data" | grep -i 'nvm')
+    if [ -n "$type" ]; then
+      type='NVME'
+    fi
+  fi
+  
   serial=$(echo "$smart_data" | grep -i "Serial Number" | awk '{print $3}')
 　
   capacity_text=$(echo "$smart_data" | grep "User Capacity" | sed -E 's/^User Capacity:.*\[([0-9a-zA-Z .]+)\][[:space:]]*$/\1/g')
@@ -163,5 +173,5 @@ for drive in $drives; do
     temp="${temp}C"
   fi
 　
-  printf '%6.6s: %5s    %5s%-3s    %-20.20s %s\n' "$(basename "$drive")" "$temp" "$capacity_val" "$capacity_unit" "$serial" "$drive_info"
+  printf '%6.6s: %5s    %5s%-3s    %-18s %-20.20s %s\n' "$(basename "$drive")" "$temp" "$capacity_val" "$capacity_unit" "$type" "$serial" "$drive_info"
 done
