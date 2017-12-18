@@ -5,6 +5,20 @@
 # Specify your email address here:
 email=""
 
+# zpool output changed from FreeNAS version 11.0 to 11.1, breaking
+# our parsing of the scrubErrors and scrubDate variables. Added a
+# conditional to test for the FreeNAS version and parse accordingly.
+# 
+# We obtain the FreeBSD version using uname, as suggested by user
+# Chris Moore on the FreeBSD forum.
+# 
+# 'uname -K' gives 7-digit OS release and version, e.g.:
+#
+#   FreeBSD 11.0  1100512
+#   FreeBSD 11.1  1101505
+ 
+fbsd_relver=$(uname -K)
+
 freenashost=$(hostname -s | tr '[:lower:]' '[:upper:]')
 logfile="/tmp/zpool_report.tmp"
 subject="ZPool Status Report for ${freenashost}"
@@ -79,8 +93,13 @@ for pool in $pools; do
   scrubAge="N/A"
   if [ "$(zpool status "$pool" | grep "scan" | awk '{print $2}')" = "scrub" ]; then
     scrubRepBytes="$(zpool status "$pool" | grep "scan" | awk '{print $4}')"
-    scrubErrors="$(zpool status "$pool" | grep "scan" | awk '{print $8}')"
-    scrubDate="$(zpool status "$pool" | grep "scan" | awk '{print $15"-"$12"-"$13"_"$14}')"
+    if [ "$fbsd_relver" -gt 1101000 ]; then
+      scrubErrors="$(zpool status "$pool" | grep "scan" | awk '{print $10}')"
+      scrubDate="$(zpool status "$pool" | grep "scan" | awk '{print $17"-"$14"-"$15"_"$16}')"
+    else
+      scrubErrors="$(zpool status "$pool" | grep "scan" | awk '{print $8}')"
+      scrubDate="$(zpool status "$pool" | grep "scan" | awk '{print $15"-"$12"-"$13"_"$14}')"
+    fi
     scrubTS="$(date -j -f "%Y-%b-%e_%H:%M:%S" "$scrubDate" "+%s")"
     currentTS="$(date "+%s")"
     scrubAge=$((((currentTS - scrubTS) + 43200) / 86400))
