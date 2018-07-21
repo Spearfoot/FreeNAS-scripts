@@ -47,7 +47,7 @@ get_smart_drives()
   gs_drives=$("$smartctl" --scan | awk '{print $1}')
 
   for gs_drive in $gs_drives; do
-    gs_smart_flag=$("$smartctl" -i "$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
+    gs_smart_flag=$("$smartctl" -i "$gs_drive" | egrep "SMART support is:[[:blank:]]+Enabled" | awk '{print $4}')
     if [ "$gs_smart_flag" = "Enabled" ]; then
       gs_smartdrives="$gs_smartdrives $gs_drive"
     fi
@@ -110,11 +110,14 @@ fi
 echo "=== DRIVES ==="
 
 for drive in $drives; do
-  serial=$("$smartctl" -i "$drive" | grep "Serial Number" | awk '{print $3}')
+  serial=$("$smartctl" -i "$drive" | grep -i "serial number" | awk '{print $NF}')
   capacity=$("$smartctl" -i "$drive" | grep "User Capacity" | awk '{print $5 $6}')
   temp=$("$smartctl" -A "$drive" | grep "194 Temperature" | awk '{print $10}')
   if [ -z "$temp" ]; then
     temp=$("$smartctl" -A "$drive" | grep "190 Airflow_Temperature" | awk '{print $10}')
+  fi
+  if [ -z "$temp" ]; then
+    temp=$("$smartctl" -A "$drive" | grep "Current Drive Temperature" | awk '{print $4}')
   fi
   if [ -z "$temp" ]; then
     temp="-n/a-"
@@ -127,6 +130,12 @@ for drive in $drives; do
     dinfo="$dmodel"
   else
     dinfo="$dfamily ($dmodel)"
+  fi
+  if [ -z "$dfamily" ]; then
+    vendor=$("$smartctl" -i "$drive" | grep "Vendor:" | awk '{print $NF}')
+    product=$("$smartctl" -i "$drive" | grep "Product:" | awk '{print $NF}')
+    revision=$("$smartctl" -i "$drive" | grep "Revision:" | awk '{print $NF}')
+    dinfo="$vendor $product $revision"
   fi
   printf '%6.6s: %5s %-8s %-20.20s %s\n' "$(basename "$drive")" "$temp" "$capacity" "$serial" "$dinfo" 
 done
