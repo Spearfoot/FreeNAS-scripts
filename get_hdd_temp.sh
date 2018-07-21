@@ -56,7 +56,6 @@ get_smart_drives()
 }
 
 drives=$(get_smart_drives)
-echo "$drives"
 
 # end of method 3.
 
