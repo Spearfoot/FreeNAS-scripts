@@ -65,11 +65,11 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
 (
  echo "########## SMART status report summary for all drives on server ${freenashost} ##########"
  echo ""
- echo "+------+------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
- echo "|Device|Serial            |Temp |Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total    |High  |Command|Last|"
- echo "|      |Number            |     |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks    |Fly   |Timeout|Test|"
- echo "|      |                  |     |Hours|Count|Count|       |Sectors|Sectors |      |         |Writes|Count  |Age |"
- echo "+------+------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
+ echo "+------+------------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
+ echo "|Device|Serial                  |Temp |Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total    |High  |Command|Last|"
+ echo "|      |Number                  |     |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks    |Fly   |Timeout|Test|"
+ echo "|      |                        |     |Hours|Count|Count|       |Sectors|Sectors |      |         |Writes|Count  |Age |"
+ echo "+------+------------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
 ) >> ${logfile}
 
 for drive in $drives; do
@@ -122,7 +122,7 @@ for drive in $drives; do
 
       if (hiFlyWr == "") hiFlyWr="N/A";
       if (cmdTimeout == "") cmdTimeout="N/A";
-      printf "|%-6s|%-18s| %s |%5s|%5s|%5s|%7s|%7s|%8s|%6s|%9s|%6s|%7s|%4s|\n",
+      printf "|%-6s|%-24s| %s |%5s|%5s|%5s|%7s|%7s|%8s|%6s|%9s|%6s|%7s|%4s|\n",
       device, serial, temp, onHours, startStop, spinRetry, reAlloc, pending, offlineUnc,
       seekErrors, totalSeeks, hiFlyWr, cmdTimeout, testAge;
       }'
@@ -130,7 +130,7 @@ for drive in $drives; do
 done
 
 (
-  echo "+------+------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
+  echo "+------+------------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
 ) >> ${logfile}
 
 ###### for each drive ######
