@@ -65,11 +65,11 @@ echo "<pre style=\"font-size:14px\">" >> ${logfile}
 (
  echo "########## SMART status report summary for all drives on server ${freenashost} ##########"
  echo ""
- echo "+------+------------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
- echo "|Device|Serial                  |Temp |Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total    |High  |Command|Last|"
- echo "|      |Number                  |     |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks    |Fly   |Timeout|Test|"
- echo "|      |                        |     |Hours|Count|Count|       |Sectors|Sectors |      |         |Writes|Count  |Age |"
- echo "+------+------------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
+ echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
+ echo "|Device|Serial                  |Temp|Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total    |High  |Command|Last|"
+ echo "|      |Number                  |    |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks    |Fly   |Timeout|Test|"
+ echo "|      |                        |    |Hours|Count|Count|       |Sectors|Sectors |      |         |Writes|Count  |Age |"
+ echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
 ) >> ${logfile}
 
 for drive in $drives; do
@@ -130,7 +130,7 @@ for drive in $drives; do
 done
 
 (
-  echo "+------+------------------------+-----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
+  echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
 ) >> ${logfile}
 
 ###### for each drive ######
