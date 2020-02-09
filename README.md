@@ -14,6 +14,23 @@ Generates and emails you a status report with detailed SMART information about y
 By default, my version of this script uses a function I wrote which uses smartctl's scan list to obtain the SMART-enabled drives on the system, but you have the option of using either a hard-coded list or a sysctl-based method instead, if you so choose. This version allows for serial numbers up to 18 characters in length, where the original only supported 15. It also selects the "Device Model" as the drive 'brand' if the "Model Family" SMART attribute is unavailable.
 
 You will need to edit the script and enter your email address before using it.
+
+NOTE: Users of some HBA controllers may need to change the SMARTCTL call, adding a device specifier. (Hat tip to commenter Tuplink for pointing this out).
+
+Example: for a 3ware controller, edit the script to invoke SMARTCTL like this:
+
+```
+"${smartctl}" [options] -d 3ware,"${drive}" /dev/twa0
+```
+...instead of...
+```
+"${smartctl}" [options] -d /dev/"${drive}"
+```
+You will also need to comment out or remove the 3 methods for determining your system drives, including the call to get_smart_drives,  and replace with a simple list of the drives on your system:
+```
+drives="0 1 2 3"
+```
+Refer to the SMARTCTL man page for addtional details, including support for other controller types.
 ***
 # zpool_report.sh
 
