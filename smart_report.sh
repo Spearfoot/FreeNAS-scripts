@@ -5,8 +5,11 @@
 # Specify your email address here:
 email=""
 
-freenashost=$(hostname -s | tr '[:lower:]' '[:upper:]')
+# Full path to 'smartctl' program:
 smartctl=/usr/local/sbin/smartctl
+
+freenashost=$(hostname -s | tr '[:lower:]' '[:upper:]')
+boundary="===== MIME boundary; FreeNAS server ${freenashost} ====="
 logfile="/tmp/smart_report.tmp"
 subject="SMART Status Report for ${freenashost}"
 tempWarn=40
@@ -24,61 +27,60 @@ critSymbol="!"
 
 # 2. A systcl-based technique suggested on the FreeNAS forum:
 #drives=$(for drive in $(sysctl -n kern.disks); do \
-#if [ "$("${smartctl}" -i /dev/${drive} | grep "SMART support is: Enabled" | awk '{print $3}')" ]
+#if [ "$("${"$smartctl"}" -i /dev/${drive} | grep "SMART support is: Enabled" | awk '{print $3}')" ]
 #then printf ${drive}" "; fi done | awk '{for (i=NF; i!=0 ; i--) print $i }')
 
-# 3. A smartctl-based function:
+# 3. A "$smartctl"-based function:
 get_smart_drives()
 {
-  gs_drives=$("${smartctl}" --scan | grep "dev" | awk '{print $1}' | sed -e 's/\/dev\///' | tr '\n' ' ')
-
   gs_smartdrives=""
+  gs_drives=$("$smartctl" --scan | awk '{print $1}')
 
   for gs_drive in $gs_drives; do
-    gs_smart_flag=$("${smartctl}" -i /dev/"$gs_drive" | grep "SMART support is: Enabled" | awk '{print $4}')
+    gs_smart_flag=$("$smartctl" -i "$gs_drive" | egrep "SMART support is:[[:blank:]]+Enabled" | awk '{print $4}')
     if [ "$gs_smart_flag" = "Enabled" ]; then
-      gs_smartdrives=$gs_smartdrives" "${gs_drive}
+      gs_smartdrives="$gs_smartdrives $gs_drive"
     fi
   done
 
-  eval "$1=\$gs_smartdrives"
+  echo "$gs_smartdrives"
 }
 
-drives=""
-get_smart_drives drives
+drives=$(get_smart_drives)
 
 # end of method 3.
 
 ### Set email headers ###
-(
-  echo "To: ${email}"
-  echo "Subject: ${subject}"
-  echo "Content-Type: text/html"
-  echo "MIME-Version: 1.0"
-  printf "\r\n"
-) > ${logfile}
+printf "%s\n" "To: ${email}
+Subject: ${subject}
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"$boundary\"
 
-### Set email body ###
-echo "<pre style=\"font-size:14px\">" >> ${logfile}
+--${boundary}
+Content-Type: text/html; charset=\"US-ASCII\"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+<html><head></head><body><pre style=\"font-size:14px\">" > ${logfile}
 
 ###### summary ######
 (
  echo "########## SMART status report summary for all drives on server ${freenashost} ##########"
  echo ""
- echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
- echo "|Device|Serial                  |Temp|Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total    |High  |Command|Last|"
- echo "|      |Number                  |    |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks    |Fly   |Timeout|Test|"
- echo "|      |                        |    |Hours|Count|Count|       |Sectors|Sectors |      |         |Writes|Count  |Age |"
- echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
-) >> ${logfile}
+ echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
+ echo "|Device|Serial                  |Temp|Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |Command|Last|"
+ echo "|      |Number                  |    |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks     |Fly   |Timeout|Test|"
+ echo "|      |                        |    |Hours|Count|Count|       |Sectors|Sectors |      |          |Writes|Count  |Age |"
+ echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
+) >> "$logfile"
 
 for drive in $drives; do
   (
-  lastTestHours=$("${smartctl}" -l selftest /dev/"${drive}" | grep "# 1" | awk '{print $9}')
-  "${smartctl}" -A -i -v 7,hex48 /dev/"${drive}" | \
-  awk -v device=${drive} -v tempWarn=${tempWarn} -v tempCrit=${tempCrit} -v sectorsCrit=${sectorsCrit} \
-  -v testAgeWarn=${testAgeWarn} -v warnSymbol="${warnSymbol}" -v critSymbol=${critSymbol} \
-  -v lastTestHours="${lastTestHours}" '
+  devid=$(basename "$drive")
+  lastTestHours=$("$smartctl" -l selftest "$drive" | grep "# 1" | awk '{print $9}')
+  "$smartctl" -A -i -v 7,hex48 "$drive" | \
+  awk -v device="$devid" -v tempWarn="$tempWarn" -v tempCrit="$tempCrit" -v sectorsCrit="$sectorsCrit" \
+  -v testAgeWarn="$testAgeWarn" -v warnSymbol="$warnSymbol" -v critSymbol="$critSymbol" \
+  -v lastTestHours="$lastTestHours" '
   /Serial Number:/{serial=$3}
   /190 Airflow_Temperature/{temp=$10}
   /194 Temperature/{temp=$10}
@@ -103,9 +105,10 @@ for drive in $drives; do
           seekErrors="N/A";
           totalSeeks="N/A";
       }
-      
       if (temp > tempWarn || temp > tempCrit)
          temp=temp"*"
+      else
+         temp=temp" "
 
       if (reAlloc > 0 || reAlloc > sectorsCrit)
          reAlloc=reAlloc"*"
@@ -118,52 +121,52 @@ for drive in $drives; do
 
       if (testAge > testAgeWarn)
          testAge=testAge"*"
-
-
+      
       if (hiFlyWr == "") hiFlyWr="N/A";
       if (cmdTimeout == "") cmdTimeout="N/A";
-      printf "|%-6s|%-24s| %s |%5s|%5s|%5s|%7s|%7s|%8s|%6s|%9s|%6s|%7s|%4s|\n",
+      printf "|%-6s|%-24s| %3s|%5s|%5s|%5s|%7s|%7s|%8s|%6s|%10s|%6s|%7s|%4s|\n",
       device, serial, temp, onHours, startStop, spinRetry, reAlloc, pending, offlineUnc,
       seekErrors, totalSeeks, hiFlyWr, cmdTimeout, testAge;
       }'
-  ) >> ${logfile}
+  ) >> "$logfile"
 done
 
 (
-  echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+---------+------+-------+----+"
-) >> ${logfile}
+  echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
+) >> "$logfile"
 
 ###### for each drive ######
 for drive in $drives; do
-  brand=$("${smartctl}" -i /dev/"${drive}" | grep "Model Family" | awk '{print $3, $4, $5}')
+  brand=$("$smartctl" -i "$drive" | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}')
   if [ -z "$brand" ]; then
-    brand=$("${smartctl}" -i /dev/"${drive}" | grep "Device Model" | awk '{print $3, $4, $5}')
+    brand=$("$smartctl" -i "$drive" | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}')
   fi
-  serial=$("${smartctl}" -i /dev/"${drive}" | grep "Serial Number" | awk '{print $3}')
+  serial=$("$smartctl" -i "$drive" | grep "Serial Number" | awk '{print $3}')
   (
   echo ""
-  echo "########## SMART status report for ${drive} drive (${brand}: ${serial}) ##########"
-  "${smartctl}" -n never -H -A -l error /dev/"${drive}"
-  "${smartctl}" -n never -l selftest /dev/"${drive}" | grep "# 1 \|Num" | cut -c6-
-  ) >> ${logfile}
+  echo "########## SMART status report for $drive drive (${brand}: ${serial}) ##########"
+  "$smartctl" -n never -H -A -l error "$drive"
+  "$smartctl" -n never -l selftest "$drive" | grep "# 1 \\|Num" | cut -c6-
+  ) >> "$logfile"
 done
 
-sed -i '' -e '/smartctl 6.*/d' ${logfile}
-sed -i '' -e '/smartctl 5.*/d' ${logfile}
-sed -i '' -e '/smartctl 4.*/d' ${logfile}
-sed -i '' -e '/Copyright/d' ${logfile}
-sed -i '' -e '/=== START OF READ/d' ${logfile}
-sed -i '' -e '/SMART Attributes Data/d' ${logfile}
-sed -i '' -e '/Vendor Specific SMART/d' ${logfile}
-sed -i '' -e '/SMART Error Log Version/d' ${logfile}
+sed -i '' -e '/smartctl 7.*/d' "$logfile"
+sed -i '' -e '/smartctl 6.*/d' "$logfile"
+sed -i '' -e '/smartctl 5.*/d' "$logfile"
+sed -i '' -e '/smartctl 4.*/d' "$logfile"
+sed -i '' -e '/Copyright/d' "$logfile"
+sed -i '' -e '/=== START OF READ/d' "$logfile"
+sed -i '' -e '/SMART Attributes Data/d' "$logfile"
+sed -i '' -e '/Vendor Specific SMART/d' "$logfile"
+sed -i '' -e '/SMART Error Log Version/d' "$logfile"
 
-echo "</pre>" >> ${logfile}
+printf "%s\n" "</pre></body></html>
+--${boundary}--" >> ${logfile}
 
 ### Send report ###
 if [ -z "${email}" ]; then
   echo "No email address specified, information available in ${logfile}"
 else
-#  sendmail -t < ${logfile}
-  sendmail ${email} < ${logfile}
-  rm ${logfile}
+  sendmail -t -oi < "$logfile"
+  rm "$logfile"
 fi
