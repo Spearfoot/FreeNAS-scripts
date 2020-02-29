@@ -20,6 +20,7 @@ email=""
 fbsd_relver=$(uname -K)
 
 freenashost=$(hostname -s | tr '[:lower:]' '[:upper:]')
+boundary="===== MIME boundary; FreeNAS server ${freenashost} ====="
 logfile="/tmp/zpool_report.tmp"
 subject="ZPool Status Report for ${freenashost}"
 pools=$(zpool list -H -o name)
@@ -30,16 +31,16 @@ warnSymbol="?"
 critSymbol="!"
 
 ### Set email headers ###
-(
-  echo "To: ${email}"
-  echo "Subject: ${subject}"
-  echo "Content-Type: text/html"
-  echo "MIME-Version: 1.0"
-  printf "\r\n"
-) > ${logfile}
+printf "%s\n" "To: ${email}
+Subject: ${subject}
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"$boundary\"
 
-### Set email body ###
-echo "<pre style=\"font-size:14px\">" >> ${logfile}
+--${boundary}
+Content-Type: text/html; charset=\"US-ASCII\"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+<html><head></head><body><pre style=\"font-size:14px\">" >> ${logfile}
 
 ###### summary ######
 (
@@ -142,13 +143,13 @@ for pool in $pools; do
   ) >> ${logfile}
 done
 
-echo "</pre>" >> ${logfile}
+printf "%s\n" "</pre></body></html>
+--${boundary}--" >> ${logfile}
 
 ### Send report ###
 if [ -z "${email}" ]; then
   echo "No email address specified, information available in ${logfile}"
 else
-#  sendmail -t < ${logfile}
-  sendmail ${email} < ${logfile}
+  sendmail -t -oi < ${logfile}
   rm ${logfile}
 fi
