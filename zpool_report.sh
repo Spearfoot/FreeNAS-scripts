@@ -40,7 +40,7 @@ Content-Type: multipart/mixed; boundary=\"$boundary\"
 Content-Type: text/html; charset=\"US-ASCII\"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-<html><head></head><body><pre style=\"font-size:14px\">" >> ${logfile}
+<html><head></head><body><pre style=\"font-size:14px; white-space:pre\">" >> ${logfile}
 
 ###### summary ######
 (
