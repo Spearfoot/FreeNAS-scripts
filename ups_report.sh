@@ -14,17 +14,21 @@ senddetail=0
 
 freenashost=$(hostname -s)
 freenashostuc=$(hostname -s | tr '[:lower:]' '[:upper:]')
+boundary="===== MIME boundary; FreeNAS server ${freenashost} ====="
 logfile="/tmp/ups_report.tmp"
 subject="UPS Status Report for ${freenashostuc}"
 
 ### Set email headers ###
-(
- echo "To: ${email}"
- echo "Subject: ${subject}"
- echo "Content-Type: text/html"
- echo "MIME-Version: 1.0"
- printf "\r\n"
-) > ${logfile}
+printf "%s\n" "To: ${email}
+Subject: ${subject}
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=\"$boundary\"
+
+--${boundary}
+Content-Type: text/html; charset=\"US-ASCII\"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+<html><head></head><body><pre style=\"font-size:14px; white-space:pre\">" >> ${logfile}
 
 # Get a list of all ups devices installed on the system:
 
@@ -32,7 +36,6 @@ upslist=$(upsc -l "${freenashost}")
 
 ### Set email body ###
 (
- echo "<pre style=\"font-size:14px\">"
  date "+Time: %Y-%m-%d %H:%M:%S"
  echo ""
  for ups in $upslist; do
@@ -77,14 +80,14 @@ upslist=$(upsc -l "${freenashost}")
  done
 ) >> ${logfile}
 
-echo "</pre>" >> ${logfile}
+printf "%s\n" "</pre></body></html>
+--${boundary}--" >> ${logfile}
 
 ### Send report ###
 if [ -z "${email}" ]; then
   echo "No email address specified, information available in ${logfile}"
 else
-#  sendmail -t < ${logfile}
-  sendmail ${email} < ${logfile}
+  sendmail -t -oi < ${logfile}
   rm ${logfile}
 fi
 
