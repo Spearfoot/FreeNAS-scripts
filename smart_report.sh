@@ -23,7 +23,7 @@ critSymbol="!"
 # three methods to provide the list. Comment out the two unused sections of code.
 
 # 1. A string constant; just key in the devices you want to report on here:
-#drives="da1 da2 da3 da4 da5 da6 da7 da8 ada0"
+#drives="/dev/da1 /dev/da2 /dev/da3 /dev/da4 /dev/da5 /dev/da6 /dev/da7 /dev/da8 /dev/ada0"
 
 # 2. A systcl-based technique suggested on the FreeNAS forum:
 #drives=$(for drive in $(sysctl -n kern.disks); do \
