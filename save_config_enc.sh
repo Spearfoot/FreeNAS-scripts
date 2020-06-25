@@ -1,10 +1,11 @@
 #!/bin/sh
 
 #################################################
-# Backup the FreeNAS configuration file
+# Backup FreeNAS configuration files
 # 
-# Simply copies the FreeNAS 9.x or 11.x sqlite3 configuration file to the
-# location you specify in the 'configdir' variable below.
+# Copies the FreeNAS sqlite3 configuration and password secret
+# seed files to the location you specify in the 'configdir'
+# variable below.
 # 
 # OPTIONAL: 
 # 
@@ -27,9 +28,6 @@ email=""
 
 # Example: configdir=/mnt/tank/sysadmin/config
 configdir=""
-
-# OpenSSL encryption cipher type. Change to suit your needs and environment:
-enc_cipher=-aes256
 
 # OpenSSL encryption passphrase file. Enter the passphrase on the the first line in
 # the file. This file should have 0600 permissions.
@@ -68,13 +66,18 @@ Content-Disposition: attachment; filename=\"$(basename "$1")\"
 
 fnconfigdest_version=$(< /etc/version sed -e 's/)//;s/(//;s/ /-/' | tr -d '\n') 
 fnconfigdest_date=$(date +%Y%m%d%H%M%S)
-fnconfigdest="$configdir"/"$freenashost"-"$fnconfigdest_version"-"$fnconfigdest_date".db
+fnconfigdest_base="$freenashost"-"$fnconfigdest_version"-"$fnconfigdest_date".db
+fnconfigdest="$configdir"/"$fnconfigdest_base"
+fnconfigtarball=./"$freenashost"-"$fnconfigdest_version"-"$fnconfigdest_date".tar.gz
+fnconfigtarballenc=./"$freenashost"-"$fnconfigdest_version"-"$fnconfigdest_date".tar.gz.enc
 
 echo "Backup configuration database file: $fnconfigdest" 
 
-# Copy the source to the destination:
-cp /data/freenas-v1.db "${fnconfigdest}"
+# Copy the source database and password encryption secret seed file to the destination:
+
+/usr/local/bin/sqlite3 /data/freenas-v1.db ".backup main '${fnconfigdest}'"
 l_status=$?
+cp -f /data/pwenc_secret "$configdir"
 
 if [ -z "$email" ]; then
 # No email message requested, show status and exit:
@@ -82,9 +85,9 @@ if [ -z "$email" ]; then
   exit $l_status
 fi
 
-#################################################
-# Send email message with config file attached
-#################################################
+#########################################################
+# Send email message with encrypted config files attached
+#########################################################
 
 fnconfigtarball=./"$freenashost"-"$fnconfigdest_version"-"$fnconfigdest_date".tar.gz
 fnconfigtarballenc=./"$freenashost"-"$fnconfigdest_version"-"$fnconfigdest_date".tar.gz.enc
@@ -95,14 +98,14 @@ if [ $l_status -eq 0 ]; then
   dbstatus=$(sqlite3 "$fnconfigdest" "pragma integrity_check;")
   printf 'sqlite3 status: [%s]\n' "$dbstatus"
   if [ "$dbstatus" = "ok" ]; then
-    tar -czvf "$fnconfigtarball" -C "$configdir" "$freenashost"-"$fnconfigdest_version"-"$fnconfigdest_date".db
+    tar -czvf "$fnconfigtarball" -C "$configdir" "$fnconfigdest_base" pwenc_secret
     l_status=$?
     printf 'tar status: [%s]\n' "$l_status"
   else
     l_status=1
   fi
   if [ $l_status -eq 0 ]; then
-    openssl enc -e "$enc_cipher" -salt -S "$(openssl rand -hex 4)" -in "$fnconfigtarball" -out "$fnconfigtarballenc" -pass file:"$enc_passphrasefile"
+    openssl enc -e -aes-256-cbc -md sha512 -salt -S "$(openssl rand -hex 4)" -pass file:"$enc_passphrasefile" -in "$fnconfigtarball" -out "$fnconfigtarballenc"
     l_status=$?
     printf 'openssl status: [%s]\n' "$l_status"
   fi
