@@ -3,7 +3,7 @@
 ### Parameters ###
 
 # Specify your email address here:
-email="marlon.otto@ghostip.tk"
+email=""
 
 # Full path to 'smartctl' program:
 smartctl=/usr/local/sbin/smartctl
