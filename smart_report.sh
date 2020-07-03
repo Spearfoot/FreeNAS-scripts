@@ -88,11 +88,11 @@ if [ $SATA_count -gt 0 ]; then
   (
    echo "########## SMART status report summary for all SATA drives on server ${freenashost} ##########"
    echo ""
-   echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
-   echo "|Device|Serial                  |Temp|Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |Command|Last|"
-   echo "|      |Number                  |    |On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks     |Fly   |Timeout|Test|"
-   echo "|      |                        |    |Hours|Count|Count|       |Sectors|Sectors |      |          |Writes|Count  |Age |"
-   echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
+   echo "+------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
+   echo "|Device|Serial                  |Temp| Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |    Command|Last|"
+   echo "|      |Number                  |    | On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks     |Fly   |    Timeout|Test|"
+   echo "|      |                        |    | Hours|Count|Count|       |Sectors|Sectors |      |          |Writes|    Count  |Age |"
+   echo "+------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
   ) >> "$logfile"
   
   ###### Detail information for each SATA drive ######
@@ -128,29 +128,21 @@ if [ $SATA_count -gt 0 ]; then
         seekErrors="N/A";
         totalSeeks="N/A";
       }
-
       if (temp > tempWarn || temp > tempCrit) temp=temp"*"
-      
       if (reAlloc > 0 || reAlloc > sectorsCrit) reAlloc=reAlloc"*"
-      
       if (pending > 0 || pending > sectorsCrit) pending=pending"*"
-  
       if (offlineUnc > 0 || offlineUnc > sectorsCrit) offlineUnc=offlineUnc"*"
-  
       if (testAge > testAgeWarn) testAge=testAge"*"
-  
       if (hiFlyWr == "") hiFlyWr="N/A";
-
       if (cmdTimeout == "") cmdTimeout="N/A";
-
-      printf "|%-6s|%-24s|%-4s|%5s|%5s|%5s|%7s|%7s|%8s|%6s|%10s|%6s|%7s|%4s|\n",
+      printf "|%-6s|%-24s|%-4s|%6s|%5s|%5s|%7s|%7s|%8s|%6s|%10s|%6s|%11s|%4s|\n",
         device, serial, temp, onHours, startStop, spinRetry, reAlloc, pending, offlineUnc,
         seekErrors, totalSeeks, hiFlyWr, cmdTimeout, testAge;
       }'
     ) >> "$logfile"
   done
   (
-    echo "+------+------------------------+----+-----+-----+-----+-------+-------+--------+------+----------+------+-------+----+"
+    echo "+------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
   ) >> "$logfile"
 fi
 
@@ -206,14 +198,25 @@ if [ $SATA_count -gt 0 ] || [ $SAS_count -gt 0 ]; then
  
   ###### Emit SATA drive information ######
   for drive in $SATA_list; do
-    brand=$("$smartctl" -i "$drive" | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}')
-    if [ -z "$brand" ]; then
-      brand=$("$smartctl" -i "$drive" | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}')
+    vendor=$("$smartctl" -i "$drive" | grep "Vendor:" | awk '{print $NF}')
+    if [ -z "$vendor" ]; then
+      dfamily=$("$smartctl" -i "$drive" | grep "Model Family" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
+      dmodel=$("$smartctl" -i "$drive" | grep "Device Model" | awk '{print $3, $4, $5, $6, $7}' | sed -e 's/[[:space:]]*$//')
+      if [ -z "$dfamily" ]; then
+        dinfo=$dmodel
+      else
+        dinfo="$dfamily ($dmodel)"
+      fi
+    else
+      product=$("$smartctl" -i "$drive" | grep "Product:" | awk '{print $NF}')
+      revision=$("$smartctl" -i "$drive" | grep "Revision:" | awk '{print $NF}')
+      dinfo="$vendor $product $revision"
     fi
     serial=$("$smartctl" -i "$drive" | grep "Serial Number" | awk '{print $3}')
     (
     echo ""
-    echo "########## SMART status for SATA drive $drive $serial (${brand}) ##########"
+    echo "########## SATA drive $drive Serial: $serial"
+    echo "########## ${dinfo}" 
     "$smartctl" -n never -H -A -l error "$drive"
     "$smartctl" -n never -l selftest "$drive" | grep "# 1 \\|Num" | cut -c6-
     ) >> "$logfile"
