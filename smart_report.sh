@@ -38,7 +38,7 @@ get_smart_drives()
   gs_drives=$("$smartctl" --scan | awk '{print $1}')
 
   for gs_drive in $gs_drives; do
-    gs_smart_flag=$("$smartctl" -i "$gs_drive" | egrep "SMART support is:[[:blank:]]+Enabled" | awk '{print $4}')
+    gs_smart_flag=$("$smartctl" -i "$gs_drive" | grep -E "SMART support is:[[:blank:]]+Enabled" | awk '{print $4}')
     if [ "$gs_smart_flag" = "Enabled" ]; then
       gs_smartdrives="$gs_smartdrives $gs_drive"
     fi
@@ -56,7 +56,7 @@ get_sata_drives()
   gsata_smartdrives=""
 
   for drive in $drives; do
-    gsata_smart_flag=$("$smartctl" -i "$drive" | egrep "SATA Version is:[[:blank:]]" | awk '{print $4}')
+    gsata_smart_flag=$("$smartctl" -i "$drive" | grep -E "SATA Version is:[[:blank:]]" | awk '{print $4}')
     if [ "$gsata_smart_flag" = "SATA" ]; then
       gsata_smartdrives="$gsata_smartdrives $drive"
     fi
@@ -74,7 +74,7 @@ get_sas_drives()
   gsas_smartdrives=""
 
   for drive in $drives; do
-    gsas_smart_flag=$("$smartctl" -i "$drive" | egrep "Transport protocol:[[:blank:]]+SAS" | awk '{print $3}')
+    gsas_smart_flag=$("$smartctl" -i "$drive" | grep -E "Transport protocol:[[:blank:]]+SAS" | awk '{print $3}')
     if [ "$gsas_smart_flag" = "SAS" ]; then
       gsas_smartdrives="$gsas_smartdrives $drive"
     fi
@@ -229,7 +229,7 @@ done
 for drive in $satadrives; do
   brand=$("$smartctl" -i "$drive" | grep "Model Family" | sed "s/^.*   //")
   if [ -z "$brand" ]; then
-  brand=$("$smartctl" -i "$drive" | grep "Device Model" | sed "s/^.* //")
+    brand=$("$smartctl" -i "$drive" | grep "Device Model" | sed "s/^.* //")
   fi
   serial=$("$smartctl" -i "$drive" | grep "Serial Number" | sed "s/^.* //")
   (
