@@ -88,13 +88,17 @@ The script uses `tar` to store the configuration and password secret seed files 
 
 `openssl enc -e -aes-256-cbc -md sha512 -salt -S "$(openssl rand -hex 4)" -pass file:[passphrase_file] -in [tarball] -out [encrypted_tarball]`
 
-To decrypt the email attachment, use this command:
+To decrypt the email attachment, use this command on your FreeNAS system:
 
 `openssl enc -d -aes-256-cbc -md sha512 -pass file:[passphrase_file] -in [encrypted_file] -out [unencrypted_file]`
 
-NOTE: Be sure to use a version of OpenSSL matching that used by FreeNAS. FreeNAS version 11.2U8, for example, uses OpenSSL version 1.0.2q-freebsd.
+Note that the command above is specific to the version of OpenSSL used by FreeNAS. FreeNAS version 11.2U8, for example, uses OpenSSL version 1.0.2q-freebsd.
 
-Where:
+You will almost certainly have to use alternative commands for other OpenSSL versions. Here is a working example for OpenSSL 1.1.1.g-2 on Arch Linux (thanks to FreeNAS forum member Dice):
+
+`openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 10 -pass file:[passphrase_file] -in [encrypted_file] -out [unencrypted_file]`
+
+In the above commands:
 * `passphrase_file` is a file containing the same passphrase you configured on your FreeNAS server
 * `encrypted_file` is your locally-saved copy of the email attachment
 * `unencrypted_file` is the unencrypted contents of the email attachment
