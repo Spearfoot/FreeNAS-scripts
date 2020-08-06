@@ -38,12 +38,21 @@ get_smart_drives()
   done
 }
 
-# Get list of SATA disks
+# Get list of SATA disks, including older drives that only report an ATA version
 get_sata_drives()
 {
   for drive in $Drive_list; do
+    lFound=0
     gsata_smart_flag=$("$smartctl" -i "$drive" | grep -E "SATA Version is:[[:blank:]]" | awk '{print $4}')
     if [ "$gsata_smart_flag" = "SATA" ]; then
+      lFound=$((lFound + 1))
+    else
+      gsata_smart_flag=$("$smartctl" -i "$drive" | grep -E "ATA Version is:[[:blank:]]" | awk '{print $1}')
+      if [ "$gsata_smart_flag" = "ATA" ]; then  
+        lFound=$((lFound + 1))
+      fi
+    fi
+    if [ $lFound -gt 0 ]; then  
       SATA_list="$SATA_list $drive"
       SATA_count=$((SATA_count + 1))
     fi
