@@ -18,7 +18,7 @@ email=""
 #
 #   FreeBSD 11.0  1100512
 #   FreeBSD 11.1  1101505
-#	FreeBSD 12.2  1202000
+#   FreeBSD 12.2  1202000
  
 fbsd_relver=$(uname -K)
 
