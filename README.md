@@ -11,7 +11,7 @@ All of the Perl code is my own contribution.
 
 Tested under:
 * TrueNAS 12.0 (FreeBSD 12.2)
-* TrueNAS 11.3 (FreeBSD 11.3-STABLE)
+* FreeNAS 11.3 (FreeBSD 11.3-STABLE)
 * FreeNAS 11.2 (FreeBSD 11.2-STABLE)
 
 Earlier versions of FreeNAS were supported, but are no longer tested.
