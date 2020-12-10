@@ -115,8 +115,10 @@ if [ $SATA_count -gt 0 ]; then
     -v lastTestHours="$lastTestHours" '
     /Serial Number:/{serial=$3}
     /190 Airflow_Temperature/{temp=$10}
+    /190 Temperature_Case/{temp=$10}
     /194 Temperature/{temp=$10}
     /Power_On_Hours/{split($10,a,"+");sub(/h/,"",a[1]);onHours=a[1];}
+    /Power_Cycle_Count/{startStop=$10}
     /Start_Stop_Count/{startStop=$10}
     /Spin_Retry_Count/{spinRetry=$10}
     /Reallocated_Sector/{reAlloc=$10}
