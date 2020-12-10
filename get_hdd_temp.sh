@@ -114,6 +114,9 @@ for drive in $drives; do
   capacity=$("$smartctl" -i "$drive" | grep "User Capacity" | awk '{print $5 $6}')
   temp=$("$smartctl" -A "$drive" | grep "194 Temperature" | awk '{print $10}')
   if [ -z "$temp" ]; then
+    temp=$("$smartctl" -A "$drive" | grep "190 Temperature_Case" | awk '{print $10}')
+  fi
+  if [ -z "$temp" ]; then
     temp=$("$smartctl" -A "$drive" | grep "190 Airflow_Temperature" | awk '{print $10}')
   fi
   if [ -z "$temp" ]; then
