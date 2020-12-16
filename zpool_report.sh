@@ -19,6 +19,15 @@ email=""
 #   FreeBSD 11.0  1100512
 #   FreeBSD 11.1  1101505
 #   FreeBSD 12.2  1202000
+# 
+# If a scrub runs longer than 24 hours, we have two additional tokens to parse in the 
+# zpool status scan line output ("'x' days"):
+# 
+# 1     2     3        4  5  6 7    8        9    10 11    12 13  14  15 16      17
+# scan: scrub repaired 0B in 1 days 11:56:46 with 0 errors on Wed Dec 9 06:07:04 2020
+# 
+# 1     2     3        4  5  6        7    8 9      10 11  12  13 14       15
+# scan: scrub repaired 0B in 00:09:11 with 0 errors on Sun Dec 13 17:31:24 2020
  
 fbsd_relver=$(uname -K)
 
@@ -101,8 +110,15 @@ for pool in $pools; do
   scrubErrors="N/A"
   scrubAge="N/A"
   if [ "$(zpool status "$pool" | grep "scan" | awk '{print $2}')" = "scrub" ]; then
-    scrubRepBytes="$(zpool status "$pool" | grep "scan" | awk '{print $4}')"
+    parseLong=0
     if [ "$fbsd_relver" -gt 1101000 ] && [ "$fbsd_relver" -lt 1200000 ]; then
+      parseLong=$((parseLong+1))
+    fi
+    if [ "$(zpool status "$pool" | grep "scan" | awk '{print $7}')" = "days" ]; then
+      parseLong=$((parseLong+1))
+    fi 
+    scrubRepBytes="$(zpool status "$pool" | grep "scan" | awk '{print $4}')"
+    if [ $parseLong -gt 0 ]; then
       scrubErrors="$(zpool status "$pool" | grep "scan" | awk '{print $10}')"
       scrubDate="$(zpool status "$pool" | grep "scan" | awk '{print $17"-"$14"-"$15"_"$16}')"
     else
