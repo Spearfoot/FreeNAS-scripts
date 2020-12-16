@@ -73,7 +73,7 @@ Optional features:
 
 Saves your FreeNAS system configuration and password secret seed files to a dataset you specify, optionally sending you an email message containing these files in an encrypted tarball.
 
-Supports the versions of FreeNAS which use an SQLite-based configuration file: these include FreeNAS 9.x-11.x, and probably earlier versions as well. 
+Supports the versions of FreeNAS which use an SQLite-based configuration file: these include FreeNAS 9.x-12.x, and probably earlier versions as well. 
 
 The backup configuration filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _bandit_:
 
@@ -94,19 +94,17 @@ The attachment filename is formed from the hostname, complete FreeNAS version, a
 ```
 bandit-FreeNAS-11.0-RELEASE-a2dc21583-20170710234500.tar.gz.enc
 ```
-The script uses `tar` to store the configuration and password secret seed files in a gzipped tarball, which it encrypts by calling `openssl`, using the passphrase you specified above. Here is the command used to encrypt the tarball:
+The script uses `tar` to store the configuration and password secret seed files in a gzipped tarball, which it encrypts by calling `openssl`, using the passphrase you specified above. For FreeNAS versions prior to 12.x, this is the command used to encrypt the tarball:
 
 `openssl enc -e -aes-256-cbc -md sha512 -salt -S "$(openssl rand -hex 4)" -pass file:[passphrase_file] -in [tarball] -out [encrypted_tarball]`
+
+For version 12.x of FreeNAS we add the new OpenSSL v1.1.1 options `-pbkdf2` and `-iter` thus:
+
+`openssl enc -e -aes-256-cbc -md sha512 -pbkdf2 -iter 128000 -salt -S "$(openssl rand -hex 8)" -pass file:[passphrase_file] -in [tarball] -out [encrypted_tarball]`
 
 To decrypt the email attachment, use this command on your FreeNAS system:
 
 `openssl enc -d -aes-256-cbc -md sha512 -pass file:[passphrase_file] -in [encrypted_file] -out [unencrypted_file]`
-
-Note that the command above is specific to the version of OpenSSL used by FreeNAS. FreeNAS version 11.2U8, for example, uses OpenSSL version 1.0.2q-freebsd.
-
-You will almost certainly have to use alternative commands for other OpenSSL versions. Here is a working example for OpenSSL 1.1.1.g-2 on Arch Linux (thanks to FreeNAS forum member Dice):
-
-`openssl enc -aes-256-cbc -md sha512 -pbkdf2 -iter 10 -pass file:[passphrase_file] -in [encrypted_file] -out [unencrypted_file]`
 
 In the above commands:
 * `passphrase_file` is a file containing the same passphrase you configured on your FreeNAS server
