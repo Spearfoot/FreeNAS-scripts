@@ -21,13 +21,13 @@ rundate=$(date)
 # 
 # Leave the email address blank to simply copy the configuration file to the
 # destination you specify with the 'configdir' setting below.
-email="keith@spearfoot.net"
+email=""
 
 # Specify the dataset on your system where you want the configuration files copied.
 # Don't include the trailing slash.
 
 # Example: configdir=/mnt/tank/sysadmin/config
-configdir="/root/work"
+configdir=""
 
 # OpenSSL encryption passphrase file. Enter the passphrase on the the first line in
 # the file. This file should have 0600 permissions.
