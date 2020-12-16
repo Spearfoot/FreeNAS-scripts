@@ -21,13 +21,13 @@ rundate=$(date)
 # 
 # Leave the email address blank to simply copy the configuration file to the
 # destination you specify with the 'configdir' setting below.
-email=""
+email="keith@spearfoot.net"
 
 # Specify the dataset on your system where you want the configuration files copied.
 # Don't include the trailing slash.
 
 # Example: configdir=/mnt/tank/sysadmin/config
-configdir=""
+configdir="/root/work"
 
 # OpenSSL encryption passphrase file. Enter the passphrase on the the first line in
 # the file. This file should have 0600 permissions.
@@ -35,6 +35,9 @@ enc_passphrasefile=/root/config_passphrase
 
 # FreeNAS hostname:
 freenashost=$(hostname -s)
+
+# FreeBSD version:
+fbsd_relver=$(uname -K)
 
 # MIME boundary
 mime_boundary="==>>> MIME boundary; FreeNAS server [${freenashost}] <<<=="
@@ -105,7 +108,11 @@ if [ $l_status -eq 0 ]; then
     l_status=1
   fi
   if [ $l_status -eq 0 ]; then
-    openssl enc -e -aes-256-cbc -md sha512 -salt -S "$(openssl rand -hex 4)" -pass file:"$enc_passphrasefile" -in "$fnconfigtarball" -out "$fnconfigtarballenc"
+    if [ "$fbsd_relver" -ge 1200000 ]; then
+      openssl enc -e -aes-256-cbc -md sha512 -pbkdf2 -iter 128000 -salt -S "$(openssl rand -hex 8)" -pass file:"$enc_passphrasefile" -in "$fnconfigtarball" -out "$fnconfigtarballenc"
+    else
+      openssl enc -e -aes-256-cbc -md sha512 -salt -S "$(openssl rand -hex 4)" -pass file:"$enc_passphrasefile" -in "$fnconfigtarball" -out "$fnconfigtarballenc"
+    fi
     l_status=$?
     printf 'openssl status: [%s]\n' "$l_status"
   fi
