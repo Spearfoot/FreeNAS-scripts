@@ -49,26 +49,34 @@ You will need to edit the script and enter your email address before using it. Y
 ***
 # save_config.sh
 
-Saves your FreeNAS system configuration file to a dataset you specify. 
+Saves your TrueNAS/FreeNAS system configuration files to a dataset you specify, by creating a tarball containing the SQLite configuration database (_freenas-v1.db_) and password secret seed encryption file (_pwenc_secret_).
 
-Supports both the now-defunct Corral and all SQLite-based versions of FreeNAS: 11.x, 9.x, etc.
-
-The backup filenames are formed from the hostname, complete FreeNAS version, and date, in this format: _hostname-freenas_version-date.db_. Here is an example from a recent backup on my server named _boomer_:
+The backup filenames are formed from the hostname, complete TrueNAS/FreeNAS version, and date, in this format: _hostname-version-date.tar_. Here is an example from a recent backup on my server named _brutus_:
 
 ```
-boomer-FreeNAS-9.10.2-U2-e1497f2-20170315224905.db
+brutus-FreeNAS-11.2-U8-06e1172340-20210806114838.tar
 ```
 
-Edit this script and set variable `configdir` to specify the target dataset where you want the backup files copied.
+Edit the script and set variable `configdir` to specify the target dataset where you want the backup files stored.
 
 Optional features:
-* Specify your email address in variable `email` to receive notification messages whenever the script executes.
-* Specify your ESXi short hostname to backup the ESXi server configuration file. These backup filenames are formed from the hostname and date in this format: _hostname-configBundle-date.tgz_. Here is an example from a recent backup on my server named _felix_, on which _boomer_ is a guest:
+* Specify your email address in variable `notifyemail` to receive notification messages whenever the script executes.
+* Specify your ESXi short hostname to backup the ESXi server configuration file. These backup filenames are formed from the hostname and date in this format: _hostname-configBundle-date.tgz_. Here is an example from a recent backup on my server named _frisco_, on which _brutus_ is a guest:
 
   ```
-  felix-configBundle-20170315224905.tgz
+  frisco-configBundle-20210806114840.tgz
   ```
 ***  
+
+Procedure:
+* Create backup of _/data/freenas-v1.db_ using the SQLite `.backup main` command with backup target _hostname-version-date.db_ in the configuration directory
+* Copy _/data/pwenc_secret_ to the configuration directory
+* Check integrity of the backup database with the SQLite `pragma integrity_check;` command
+* Copy the validated backup database to _freenas-v1.db_ in the configuration directory
+* Add _freenas-v1.db_ and _pwenc_secret_ to tar file _hostname-version-date.tar_ in the configuration directory
+* Optionally create ESXi configuration bundle in the configuration directory
+* Optionally send an email notification upon completion
+
 # save_config_enc.sh
 
 Saves your FreeNAS system configuration and password secret seed files to a dataset you specify, optionally sending you an email message containing these files in an encrypted tarball.
