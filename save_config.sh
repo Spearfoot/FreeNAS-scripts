@@ -18,7 +18,7 @@ if [ -z "${configdir}" ]; then
   exit 2
 fi
 
-# Optional: Set non-zero 'd0_tar' flag to have both files stored in a tarball as typically
+# Optional: Set non-zero 'do_tar' flag to have both files stored in a tarball as typically
 # needed when restoring a configuration.
 do_tar=1
 
