@@ -51,6 +51,9 @@ You will need to edit the script and enter your email address before using it. Y
 
 Saves your TrueNAS/FreeNAS system configuration files to a dataset you specify, by creating a tarball containing the SQLite configuration database (_freenas-v1.db_) and password secret seed encryption file (_pwenc_secret_). The tarball is suitable for use in restoring the configuration on TrueNAS/FreeNAS systems.
 
+**!!! Security Warning !!!**
+> The system configuration and password secret seed encryption file are sensitive information and should be stored on a dataset available only to system administrators!
+
 The backup database and tarball filenames are formed from the hostname, complete TrueNAS/FreeNAS version, date, and _tar_ or _db_ extension, in this format: _hostname-version-date.extension_. Here are examples from a recent backup on my server named _brutus_:
 
 ```
@@ -85,6 +88,9 @@ Note that each invocation of the script creates these files in the configuration
 # save_config_enc.sh
 
 Saves your FreeNAS system configuration and password secret seed files to a dataset you specify, optionally sending you an email message containing these files in an encrypted tarball.
+
+**!!! Security Warning !!!**
+> The system configuration and password secret seed encryption file are sensitive information and should be stored on a dataset available only to system administrators!
 
 Supports the versions of FreeNAS which use an SQLite-based configuration file: these include FreeNAS 9.x-12.x, and probably earlier versions as well. 
 
