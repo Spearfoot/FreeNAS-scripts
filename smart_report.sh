@@ -97,11 +97,11 @@ if [ $SATA_count -gt 0 ]; then
   (
    echo "########## SMART status report summary for all SATA drives on server ${freenashost} ##########"
    echo ""
-   echo "+------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
-   echo "|Device|Serial                  |Temp| Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |    Command|Last|"
-   echo "|      |Number                  |    | On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks     |Fly   |    Timeout|Test|"
-   echo "|      |                        |    | Hours|Count|Count|       |Sectors|Sectors |      |          |Writes|    Count  |Age |"
-   echo "+------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
+   echo "+-------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
+   echo "|Device |Serial                  |Temp| Power|Start|Spin |ReAlloc|Current|Offline |Seek  |Total     |High  |    Command|Last|"
+   echo "|       |Number                  |    | On   |Stop |Retry|Sectors|Pending|Uncorrec|Errors|Seeks     |Fly   |    Timeout|Test|"
+   echo "|       |                        |    | Hours|Count|Count|       |Sectors|Sectors |      |          |Writes|    Count  |Age |"
+   echo "+-------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
   ) >> "$logfile"
   
   ###### Detail information for each SATA drive ######
@@ -146,14 +146,14 @@ if [ $SATA_count -gt 0 ]; then
       if (testAge > testAgeWarn) testAge=testAge"*"
       if (hiFlyWr == "") hiFlyWr="N/A";
       if (cmdTimeout == "") cmdTimeout="N/A";
-      printf "|%-6s|%-24s|%-4s|%6s|%5s|%5s|%7s|%7s|%8s|%6s|%10s|%6s|%11s|%4s|\n",
+      printf "|%-7s|%-24s|%-4s|%6s|%5s|%5s|%7s|%7s|%8s|%6s|%10s|%6s|%11s|%4s|\n",
         device, serial, temp, onHours, startStop, spinRetry, reAlloc, pending, offlineUnc,
         seekErrors, totalSeeks, hiFlyWr, cmdTimeout, testAge;
       }'
     ) >> "$logfile"
   done
   (
-    echo "+------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
+    echo "+-------+------------------------+----+------+-----+-----+-------+-------+--------+------+----------+------+-----------+----+"
   ) >> "$logfile"
 fi
 
@@ -166,42 +166,48 @@ if [ $SAS_count -gt 0 ]; then
   
     echo "########## SMART status report summary for all SAS drives on server ${freenashost} ##########"
     echo ""
-    echo "+------+------------------------+----+-----+------+------+------+------+------+------+"
-    echo "|Device|Serial                  |Temp|Start|Load  |Defect|Uncorr|Uncorr|Uncorr|Non   |"
-    echo "|      |Number                  |    |Stop |Unload|List  |Read  |Write |Verify|Medium|"
-    echo "|      |                        |    |Count|Count |Elems |Errors|Errors|Errors|Errors|"
-    echo "+------+------------------------+----+-----+------+------+------+------+------+------+"
+    echo "+-------+------------------------+----+------+-----+------+------+------+------+------+------+----+"
+    echo "|Device |Serial                  |Temp| Power|Start|Load  |Defect|Uncorr|Uncorr|Uncorr|Non   |Last|"
+    echo "|       |Number                  |    | On   |Stop |Unload|List  |Read  |Write |Verify|Medium|Test|"
+    echo "|       |                        |    | Hours|Count|Count |Elems |Errors|Errors|Errors|Errors|Age |"
+    echo "+-------+------------------------+----+------+-----+------+------+------+------+------+------+----+"
   ) >> "$logfile"
   
   ###### Detail information for each SAS drive ######
   for drive in $SAS_list; do
     (
     devid=$(basename "$drive")
-    "$smartctl" -a "$drive" | \
+    lastTestHours=$("$smartctl" -l selftest "$drive" | grep "# 1" | awk '{print $7}')
+    "$smartctl" -x "$drive" | \
     awk -v device="$devid" -v tempWarn="$tempWarn" -v tempCrit="$tempCrit" \
-    -v warnSymbol="$warnSymbol" -v critSymbol="$critSymbol" '\
+    -v warnSymbol="$warnSymbol" -v critSymbol="$critSymbol" \
+	-v lastTestHours="$lastTestHours" -v testAgeWarn="$testAgeWarn" '
     /Serial number:/{serial=$3}
-    /Current Drive Temperature:/{temp=$4} \
-    /start-stop cycles:/{startStop=$4} \
-    /load-unload cycles:/{loadUnload=$4} \
-    /grown defect list:/{defectList=$6} \
-    /read:/{readErrors=$8} \
-    /write:/{writeErrors=$8} \
-    /verify:/{verifyErrors=$8} \
-    /Non-medium error count:/{nonMediumErrors=$4} \
+    /Current Drive Temperature:/{temp=$4}
+    /start-stop cycles:/{startStop=$4}
+    /load-unload cycles:/{loadUnload=$4}
+    /grown defect list:/{defectList=$6}
+    /read:/{readErrors=$8}
+    /write:/{writeErrors=$8}
+    /verify:/{verifyErrors=$8}
+    /Non-medium error count:/{nonMediumErrors=$4}
+    /Accumulated power on time/{split($6,a,":");sub(/h/,"",a[1]);onHours=a[1];}
     END {
+      testAge=sprintf("%.0f", (onHours - lastTestHours) / 24);
       if (temp > tempCrit)
-      device=device " " critSymbol;
-    else if (temp > tempWarn)
+        device=device " " critSymbol;
+      else if (temp > tempWarn || testAge > testAgeWarn)
         device=device " " warnSymbol;
-      printf "|%-6s|%-24s| %3s|%5s|%6s|%6s|%6s|%6s|%6s|%6s|\n",
-      device, serial, temp, startStop, loadUnload, defectList, \
-      readErrors, writeErrors, verifyErrors, nonMediumErrors;
+      if (testAge > testAgeWarn) testAge=testAge"*"
+	  if (defectList > 0) defectList=defectList"*"
+      printf "|%-7s|%-24s| %3s|%6s|%5s|%6s|%6s|%6s|%6s|%6s|%6s|%4s|\n",
+        device, serial, temp, onHours, startStop, loadUnload, defectList, \
+        readErrors, writeErrors, verifyErrors, nonMediumErrors,testAge;
      }'
     ) >> "$logfile"
   done
   (
-    echo "+------+------------------------+----+-----+------+------+------+------+------+------+"
+    echo "+-------+------------------------+----+------+-----+------+------+------+------+------+------+----+"
   ) >> "$logfile"
 fi
 
