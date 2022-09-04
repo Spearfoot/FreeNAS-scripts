@@ -148,6 +148,7 @@ sub display_cpu_temps
     for (my $core=0; $core < $cpucores; $core++)
       {
       $temp = qx(sysctl -n dev.cpu.$core.temperature);
+      $temp =~ s/[^\-[:digit:]\.]//g;
       chomp($temp);
       if ($temp <= 0)
         {
