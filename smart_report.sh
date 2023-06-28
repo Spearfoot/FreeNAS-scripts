@@ -128,7 +128,7 @@ if [ $SATA_count -gt 0 ]; then
     /High_Fly_Writes/{hiFlyWr=$10}
     /Command_Timeout/{cmdTimeout=$10}
     END {
-      testAge=sprintf("%.0f", (onHours - lastTestHours) / 24);
+      testAge=sprintf("%.0f", ((onHours % 65535) - lastTestHours) / 24);
       if (temp > tempCrit || reAlloc > sectorsCrit || pending > sectorsCrit || offlineUnc > sectorsCrit)
         device=device " " critSymbol;
       else if (temp > tempWarn || reAlloc > 0 || pending > 0 || offlineUnc > 0 || testAge > testAgeWarn)
